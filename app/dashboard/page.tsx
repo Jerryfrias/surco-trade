@@ -21,6 +21,11 @@ export default function Dashboard() {
     cargar();
   }, []);
 
+  const cerrarSesion = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex">
       <aside className="w-64 bg-gray-900 border-r border-gray-800 p-6 flex flex-col gap-8">
@@ -28,7 +33,7 @@ export default function Dashboard() {
           <h1 className="text-green-400 font-bold text-xl">Surco.trade</h1>
           <p className="text-gray-500 text-xs mt-1">Panel Interno</p>
         </div>
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-2 flex-1">
           {[
             { label: "Resumen", href: "/dashboard" },
             { label: "Productores", href: "/productores" },
@@ -41,6 +46,10 @@ export default function Dashboard() {
             </a>
           ))}
         </nav>
+        <button onClick={cerrarSesion}
+          className="text-left px-4 py-2 rounded-lg text-red-400 hover:bg-gray-800 transition text-sm">
+          Cerrar sesión
+        </button>
       </aside>
       <main className="flex-1 p-8">
         <h2 className="text-2xl font-bold mb-6">Resumen</h2>
