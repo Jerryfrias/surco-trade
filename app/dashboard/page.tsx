@@ -10,10 +10,11 @@ export default function Dashboard() {
         </div>
         <nav className="flex flex-col gap-2">
           {[
-            { label: "Productores", href: "/productores" },
-            { label: "Productos", href: "/productos" },
-            { label: "Pedidos", href: "/pedidos" },
-          ].map((item) => (
+  { label: "Resumen", href: "/dashboard" },
+  { label: "Productores", href: "/productores" },
+  { label: "Productos", href: "/productos" },
+  { label: "Pedidos", href: "/pedidos" },
+].map((item) => (
             <a key={item.label} href={item.href}
               className="text-left px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition">
               {item.label}
