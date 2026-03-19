@@ -9,10 +9,15 @@ export default function Dashboard() {
           <p className="text-gray-500 text-xs mt-1">Panel Interno</p>
         </div>
         <nav className="flex flex-col gap-2">
-          {["Productores", "Productos", "Pedidos", "Compradores"].map((item) => (
-            <button key={item} className="text-left px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition">
-              {item}
-            </button>
+          {[
+            { label: "Productores", href: "/productores" },
+            { label: "Productos", href: "/productos" },
+            { label: "Pedidos", href: "/pedidos" },
+          ].map((item) => (
+            <a key={item.label} href={item.href}
+              className="text-left px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition">
+              {item.label}
+            </a>
           ))}
         </nav>
       </aside>
