@@ -160,7 +160,7 @@ export default function Home() {
       <div style={{ padding: "40px 48px", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "12px", border: "0.5px solid rgba(74,222,128,0.3)" }}>Our categories</div>
         <h2 style={{ fontSize: "26px", fontWeight: 500, letterSpacing: "-0.5px", marginBottom: "32px" }}>What we export.</h2>
-        <div style={{ display: "flex", gap: "10px", height: "440px" }}>
+        <div style={{ display: "flex", gap: "10px", height: "440px", justifyContent: "center" }}>
           {categories.map((cat, i) => (
             <div
               key={i}
