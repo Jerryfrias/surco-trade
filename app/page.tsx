@@ -2,6 +2,30 @@ export default function Home() {
   return (
     <div style={{ background: "#071a0e", minHeight: "100vh", fontFamily: "sans-serif", color: "white" }}>
 
+      {/* TICKER */}
+      <div style={{ background: "#0a2414", borderBottom: "0.5px solid rgba(74,222,128,0.18)", padding: "9px 0", overflow: "hidden", whiteSpace: "nowrap" }}>
+        <style>{`@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
+        <div style={{ display: "inline-flex", gap: "40px", animation: "scroll 28s linear infinite" }}>
+          {[
+            { name: "Vannamei Shrimp", price: "$4.20/kg", change: "+1.2%", up: true },
+            { name: "Dragon Fruit", price: "$1.80/kg", change: "-0.5%", up: false },
+            { name: "Organic Banana", price: "$0.62/kg", change: "+0.8%", up: true },
+            { name: "Cacao", price: "$3.10/kg", change: "+2.1%", up: true },
+            { name: "Tilapia", price: "$2.40/kg", change: "-0.3%", up: false },
+            { name: "Mango", price: "$1.20/kg", change: "+0.6%", up: true },
+            { name: "Vannamei Shrimp", price: "$4.20/kg", change: "+1.2%", up: true },
+            { name: "Dragon Fruit", price: "$1.80/kg", change: "-0.5%", up: false },
+            { name: "Organic Banana", price: "$0.62/kg", change: "+0.8%", up: true },
+            { name: "Cacao", price: "$3.10/kg", change: "+2.1%", up: true },
+          ].map((item, i) => (
+            <span key={i} style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>
+              <span style={{ color: "white", fontWeight: 500, marginRight: "6px" }}>{item.name}</span>
+              {item.price} <span style={{ color: item.up ? "#4ade80" : "#f87171" }}>{item.change}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* NAV */}
       <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 48px", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div style={{ color: "#4ade80", fontSize: "18px", fontWeight: 500 }}>Surco.trade</div>
@@ -62,30 +86,6 @@ export default function Home() {
               <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginTop: "3px" }}>{p.name}</div>
               <div style={{ color: "#4ade80", fontSize: "12px", marginTop: "3px" }}>{p.price}</div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* TICKER */}
-      <div style={{ background: "#0a2414", borderTop: "0.5px solid rgba(74,222,128,0.18)", borderBottom: "0.5px solid rgba(74,222,128,0.18)", padding: "9px 0", overflow: "hidden", whiteSpace: "nowrap" }}>
-        <style>{`@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
-        <div style={{ display: "inline-flex", gap: "40px", animation: "scroll 28s linear infinite" }}>
-          {[
-            { name: "Vannamei Shrimp", price: "$4.20/kg", change: "+1.2%", up: true },
-            { name: "Dragon Fruit", price: "$1.80/kg", change: "-0.5%", up: false },
-            { name: "Organic Banana", price: "$0.62/kg", change: "+0.8%", up: true },
-            { name: "Cacao", price: "$3.10/kg", change: "+2.1%", up: true },
-            { name: "Tilapia", price: "$2.40/kg", change: "-0.3%", up: false },
-            { name: "Mango", price: "$1.20/kg", change: "+0.6%", up: true },
-            { name: "Vannamei Shrimp", price: "$4.20/kg", change: "+1.2%", up: true },
-            { name: "Dragon Fruit", price: "$1.80/kg", change: "-0.5%", up: false },
-            { name: "Organic Banana", price: "$0.62/kg", change: "+0.8%", up: true },
-            { name: "Cacao", price: "$3.10/kg", change: "+2.1%", up: true },
-          ].map((item, i) => (
-            <span key={i} style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>
-              <span style={{ color: "white", fontWeight: 500, marginRight: "6px" }}>{item.name}</span>
-              {item.price} <span style={{ color: item.up ? "#4ade80" : "#f87171" }}>{item.change}</span>
-            </span>
           ))}
         </div>
       </div>
