@@ -34,9 +34,18 @@ export default function Home() {
             <a key={item} href="#" style={{ color: "rgba(255,255,255,0.55)", fontSize: "13px", textDecoration: "none" }}>{item}</a>
           ))}
         </div>
-        <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "12px", fontWeight: 500, padding: "7px 18px", borderRadius: "6px", border: "none", cursor: "pointer" }}>
-          Request access
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Selector de idioma */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <span style={{ fontSize: "18px" }}>🇬🇧</span>
+            <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>English</span>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>▾</span>
+          </div>
+          {/* Botón My Account */}
+          <button style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
+            My account
+          </button>
+        </div>
       </nav>
 
       {/* HERO */}
