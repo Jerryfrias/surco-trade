@@ -2,10 +2,10 @@
 import { useState } from "react";
 
 const categories = [
-  { tag: "Category 01", title: "Aqua-\nculture", sub: "Ecuador · Pacific Coast", desc: "Premium shrimp, tilapia and seafood products farmed under strict quality standards, ready for international export.", products: ["Vannamei Shrimp", "Tilapia", "Black Tiger", "Tuna"], bg: "Aquaculture" },
-  { tag: "Category 02", title: "Agri-\nculture", sub: "Ecuador · Highlands & Coast", desc: "Fresh tropical fruits, cacao and specialty crops from verified Ecuadorian producers, consolidated for global buyers.", products: ["Dragon Fruit", "Banana", "Mango", "Cacao"], bg: "Agriculture" },
-  { tag: "Category 03", title: "Flori-\nculture", sub: "Ecuador · Andean Region", desc: "Ecuador is the world's 3rd largest flower exporter. Fresh-cut roses, carnations and gypsophila shipped worldwide.", products: ["Roses", "Carnations", "Gypsophila", "Lilies"], bg: "Floriculture" },
-  { tag: "Category 04", title: "Poultry", sub: "Ecuador · National Production", desc: "High-quality poultry products from certified Ecuadorian farms, meeting international food safety standards.", products: ["Chicken", "Turkey", "Eggs", "Processed"], bg: "Poultry" },
+  { tag: "Category 01", title: "Aqua-\nculture", sub: "Ecuador · Pacific Coast", desc: "Premium shrimp, tilapia and seafood products farmed under strict quality standards, ready for international export.", products: ["Vannamei Shrimp", "Tilapia", "Black Tiger", "Tuna"], bg: "Aquaculture", label: "Aqua-culture" },
+  { tag: "Category 02", title: "Agri-\nculture", sub: "Ecuador · Highlands & Coast", desc: "Fresh tropical fruits, cacao and specialty crops from verified Ecuadorian producers, consolidated for global buyers.", products: ["Dragon Fruit", "Banana", "Mango", "Cacao"], bg: "Agriculture", label: "Agri-culture" },
+  { tag: "Category 03", title: "Flori-\nculture", sub: "Ecuador · Andean Region", desc: "Ecuador is the world's 3rd largest flower exporter. Fresh-cut roses, carnations and gypsophila shipped worldwide.", products: ["Roses", "Carnations", "Gypsophila", "Lilies"], bg: "Floriculture", label: "Flori-culture" },
+  { tag: "Category 04", title: "Poultry", sub: "Ecuador · National Production", desc: "High-quality poultry products from certified Ecuadorian farms, meeting international food safety standards.", products: ["Chicken", "Turkey", "Eggs", "Processed"], bg: "Poultry", label: "Poultry" },
 ];
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
       <div style={{ background: "#0a2414", borderBottom: "0.5px solid rgba(74,222,128,0.18)", padding: "9px 0", overflow: "hidden", whiteSpace: "nowrap" }}>
         <style>{`
           @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-          @keyframes scrollleft { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+          @keyframes scrollleft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         `}</style>
         <div style={{ display: "inline-flex", gap: "40px", animation: "scroll 28s linear infinite" }}>
           {[
@@ -160,7 +160,7 @@ export default function Home() {
       <div style={{ padding: "40px 48px", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "12px", border: "0.5px solid rgba(74,222,128,0.3)" }}>Our categories</div>
         <h2 style={{ fontSize: "26px", fontWeight: 500, letterSpacing: "-0.5px", marginBottom: "32px" }}>What we export.</h2>
-        <div style={{ display: "flex", gap: "12px", height: "420px" }}>
+        <div style={{ display: "flex", gap: "10px", height: "440px" }}>
           {categories.map((cat, i) => (
             <div
               key={i}
@@ -168,42 +168,43 @@ export default function Home() {
               style={{
                 borderRadius: "12px",
                 background: "#0a2414",
-                border: active === i ? "0.5px solid rgba(74,222,128,0.25)" : "0.5px solid rgba(255,255,255,0.07)",
+                border: active === i ? "0.5px solid rgba(74,222,128,0.2)" : "0.5px solid rgba(255,255,255,0.07)",
                 cursor: "pointer",
                 transition: "all 0.4s ease",
                 overflow: "hidden",
                 position: "relative",
                 ...(active === i
-                  ? { flex: "0 0 520px", padding: "40px", display: "flex", flexDirection: "column" as const, justifyContent: "space-between" }
-                  : { flex: "1 1 0", display: "flex", alignItems: "flex-end", padding: "24px 0" }
+                  ? { flex: "0 0 420px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "48px 40px" }
+                  : { flex: "1", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "flex-end", paddingBottom: "28px" }
                 )
               }}
             >
               {active === i ? (
                 <>
-                  <div>
-                    <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "20px" }}>{cat.tag}</div>
-                    <div style={{ color: "white", fontSize: "52px", fontWeight: 700, letterSpacing: "-2px", lineHeight: 1.0, marginBottom: "6px", fontFamily: "Georgia, serif" }}>
-                      {cat.title.split("\n").map((t, j) => <span key={j}>{t}{j === 0 && cat.title.includes("\n") && <br />}</span>)}
-                    </div>
-                    <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "20px" }}>{cat.sub}</div>
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", maxWidth: "340px" }}>{cat.desc}</div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" as const, marginBottom: "28px" }}>
-                      {cat.products.map(p => (
-                        <span key={p} style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: "11px", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(255,255,255,0.1)" }}>{p}</span>
-                      ))}
-                    </div>
+                  <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "20px" }}>{cat.tag}</div>
+                  <div style={{ color: "white", fontSize: "52px", fontWeight: 700, letterSpacing: "-2px", lineHeight: 1.0, marginBottom: "6px", fontFamily: "Georgia, serif" }}>
+                    {cat.title.split("\n").map((t, j) => <span key={j}>{t}{j === 0 && cat.title.includes("\n") && <br />}</span>)}
                   </div>
-                  <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "14px 32px", borderRadius: "50px", border: "none", cursor: "pointer", width: "fit-content" }}>Browse products →</button>
-                  <div style={{ position: "absolute", bottom: "-20px", right: "-20px", fontSize: "160px", fontWeight: 700, color: "rgba(255,255,255,0.04)", letterSpacing: "-8px", pointerEvents: "none", lineHeight: 1, fontFamily: "Georgia, serif", whiteSpace: "nowrap", animation: "scrollleft 12s linear infinite" }}>
-                    {cat.bg}&nbsp;&nbsp;{cat.bg}
+                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "20px" }}>{cat.sub}</div>
+                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", maxWidth: "300px" }}>{cat.desc}</div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" as const, justifyContent: "center", marginBottom: "32px" }}>
+                    {cat.products.map(p => (
+                      <span key={p} style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: "11px", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(255,255,255,0.1)" }}>{p}</span>
+                    ))}
+                  </div>
+                  <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "14px 32px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Browse products →</button>
+                  <div style={{ position: "absolute", bottom: "0", left: "0", width: "100%", overflow: "hidden", pointerEvents: "none", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "inline-block", animation: "scrollleft 10s linear infinite" }}>
+                      <span style={{ fontSize: "140px", fontWeight: 700, color: "rgba(255,255,255,0.04)", fontFamily: "Georgia, serif", display: "inline-block", paddingRight: "40px", lineHeight: 1 }}>{cat.bg}</span>
+                      <span style={{ fontSize: "140px", fontWeight: 700, color: "rgba(255,255,255,0.04)", fontFamily: "Georgia, serif", display: "inline-block", paddingRight: "40px", lineHeight: 1 }}>{cat.bg}</span>
+                    </div>
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ writingMode: "vertical-rl" as const, transform: "rotate(180deg)", color: "rgba(255,255,255,0.35)", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", width: "100%", textAlign: "center", marginBottom: "8px" }}>{cat.tag}</div>
-                  <div style={{ writingMode: "vertical-rl" as const, transform: "rotate(180deg)", color: "white", fontSize: "22px", fontWeight: 700, width: "100%", textAlign: "center", fontFamily: "Georgia, serif" }}>{cat.title.replace("\n", "")}</div>
-                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "16px", position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)" }}>→</div>
+                  <div style={{ writingMode: "vertical-rl" as const, transform: "rotate(180deg)", color: "rgba(255,255,255,0.3)", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "8px" }}>{cat.tag}</div>
+                  <div style={{ writingMode: "vertical-rl" as const, transform: "rotate(180deg)", color: "white", fontSize: "20px", fontWeight: 700, fontFamily: "Georgia, serif" }}>{cat.label}</div>
+                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginTop: "16px" }}>→</div>
                 </>
               )}
             </div>
