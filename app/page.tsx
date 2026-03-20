@@ -18,7 +18,7 @@ export default function Home() {
       <div style={{ background: "#0a2414", borderBottom: "0.5px solid rgba(74,222,128,0.18)", padding: "9px 0", overflow: "hidden", whiteSpace: "nowrap" }}>
         <style>{`
           @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-          @keyframes scrollleft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+          @keyframes scrollleft { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
         `}</style>
         <div style={{ display: "inline-flex", gap: "40px", animation: "scroll 28s linear infinite" }}>
           {[
@@ -160,7 +160,7 @@ export default function Home() {
       <div style={{ padding: "40px 48px", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "12px", border: "0.5px solid rgba(74,222,128,0.3)" }}>Our categories</div>
         <h2 style={{ fontSize: "26px", fontWeight: 500, letterSpacing: "-0.5px", marginBottom: "32px" }}>What we export.</h2>
-        <div style={{ display: "flex", gap: "12px", height: "400px" }}>
+        <div style={{ display: "flex", gap: "12px", height: "420px" }}>
           {categories.map((cat, i) => (
             <div
               key={i}
@@ -174,8 +174,8 @@ export default function Home() {
                 overflow: "hidden",
                 position: "relative",
                 ...(active === i
-                  ? { flex: 1, padding: "40px", display: "flex", flexDirection: "column", justifyContent: "space-between" }
-                  : { width: "80px", flexShrink: 0, display: "flex", alignItems: "flex-end", padding: "24px 0" }
+                  ? { flex: "0 0 520px", padding: "40px", display: "flex", flexDirection: "column" as const, justifyContent: "space-between" }
+                  : { flex: "1 1 0", display: "flex", alignItems: "flex-end", padding: "24px 0" }
                 )
               }}
             >
@@ -183,24 +183,26 @@ export default function Home() {
                 <>
                   <div>
                     <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "20px" }}>{cat.tag}</div>
-                    <div style={{ color: "white", fontSize: "52px", fontWeight: 700, letterSpacing: "-2px", lineHeight: 1.0, marginBottom: "6px", fontFamily: "Georgia, serif" }}>{cat.title.split("\n").map((t, j) => <span key={j}>{t}{j === 0 && <br />}</span>)}</div>
+                    <div style={{ color: "white", fontSize: "52px", fontWeight: 700, letterSpacing: "-2px", lineHeight: 1.0, marginBottom: "6px", fontFamily: "Georgia, serif" }}>
+                      {cat.title.split("\n").map((t, j) => <span key={j}>{t}{j === 0 && cat.title.includes("\n") && <br />}</span>)}
+                    </div>
                     <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "20px" }}>{cat.sub}</div>
                     <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", maxWidth: "340px" }}>{cat.desc}</div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "28px" }}>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" as const, marginBottom: "28px" }}>
                       {cat.products.map(p => (
                         <span key={p} style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: "11px", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(255,255,255,0.1)" }}>{p}</span>
                       ))}
                     </div>
                   </div>
                   <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "14px 32px", borderRadius: "50px", border: "none", cursor: "pointer", width: "fit-content" }}>Browse products →</button>
-                  <div style={{ position: "absolute", bottom: "-30px", right: "-10px", fontSize: "160px", fontWeight: 700, color: "rgba(255,255,255,0.04)", letterSpacing: "-8px", pointerEvents: "none", lineHeight: 1, fontFamily: "Georgia, serif", animation: "scrollleft 8s linear infinite", whiteSpace: "nowrap" }}>
+                  <div style={{ position: "absolute", bottom: "-20px", right: "-20px", fontSize: "160px", fontWeight: 700, color: "rgba(255,255,255,0.04)", letterSpacing: "-8px", pointerEvents: "none", lineHeight: 1, fontFamily: "Georgia, serif", whiteSpace: "nowrap", animation: "scrollleft 12s linear infinite" }}>
                     {cat.bg}&nbsp;&nbsp;{cat.bg}
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: "rgba(255,255,255,0.35)", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", width: "100%", textAlign: "center", marginBottom: "8px" }}>{cat.tag}</div>
-                  <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: "white", fontSize: "22px", fontWeight: 700, width: "100%", textAlign: "center", fontFamily: "Georgia, serif" }}>{cat.title.replace("\n", "")}</div>
+                  <div style={{ writingMode: "vertical-rl" as const, transform: "rotate(180deg)", color: "rgba(255,255,255,0.35)", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", width: "100%", textAlign: "center", marginBottom: "8px" }}>{cat.tag}</div>
+                  <div style={{ writingMode: "vertical-rl" as const, transform: "rotate(180deg)", color: "white", fontSize: "22px", fontWeight: 700, width: "100%", textAlign: "center", fontFamily: "Georgia, serif" }}>{cat.title.replace("\n", "")}</div>
                   <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "16px", position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)" }}>→</div>
                 </>
               )}
