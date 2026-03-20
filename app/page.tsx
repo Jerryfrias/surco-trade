@@ -175,7 +175,7 @@ export default function Home() {
                 position: "relative",
                 ...(active === i
                   ? { flex: "0 0 420px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "48px 40px" }
-                  : { flex: "1", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "flex-end", paddingBottom: "28px" }
+                  : { flex: "0 0 90px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "flex-end", paddingBottom: "28px" }
                 )
               }}
             >
