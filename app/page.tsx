@@ -211,6 +211,25 @@ export default function Home() {
           ))}
         </div>
       </div>
+{/* WHAT WE DO */}
+      <div style={{ background: "linear-gradient(180deg, #071a0e 0%, #040d06 100%)", padding: "120px 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+        <div>
+          <h2 style={{ fontSize: "64px", fontWeight: 700, letterSpacing: "-2px", lineHeight: 1, color: "white", textTransform: "uppercase" }}>What<br />we do.</h2>
+        </div>
+        <div>
+          <p style={{ fontSize: "15px", lineHeight: 1.8, color: "rgba(255,255,255,0.7)", marginBottom: "20px" }}>
+            Surco.trade connects <strong style={{ color: "white" }}>verified producers</strong> from Ecuador with <strong style={{ color: "white" }}>international buyers</strong> worldwide.
+          </p>
+          <p style={{ fontSize: "15px", lineHeight: 1.8, color: "rgba(255,255,255,0.7)", marginBottom: "20px" }}>
+            We consolidate shipments, handle the documentation, and bridge the gap — so you can focus on your business.
+          </p>
+          <p style={{ fontSize: "15px", lineHeight: 1.8, color: "rgba(255,255,255,0.7)", marginBottom: "36px" }}>
+            No middlemen. <strong style={{ color: "white" }}>Fair prices. Your volume.</strong>
+          </p>
+          <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "13px 28px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Speak to our team</button>
+        </div>
+      </div>
+
 {/* ECOSISTEMA */}
       <div style={{ background: "#040d06", minHeight: "100vh", padding: "80px 48px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <style>{`
