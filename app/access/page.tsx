@@ -116,7 +116,12 @@ export default function AccessPage() {
                   </div>
                 </div>
                 <div style={{ textAlign: "right", marginBottom: "20px" }}>
-                  <span style={{ color: "#4ade80", fontSize: "12px", cursor: "pointer" }}>Forgot password?</span>
+                  <span onClick={async () => {
+  const email = (document.getElementById("si-email") as HTMLInputElement).value;
+  if (!email) { alert("Enter your email first."); return; }
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: "https://surco-trade.vercel.app/reset-password" });
+  alert("Check your email for the reset link.");
+}} style={{ color: "#4ade80", fontSize: "12px", cursor: "pointer" }}>Forgot password?</span>
                 </div>
                 <button onClick={handleSignIn} disabled={loading} style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer" }}>
                   {loading ? "Signing in..." : "Continue →"}
