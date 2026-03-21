@@ -22,6 +22,9 @@ export default function AccessPage() {
   const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
   useEffect(() => {
     const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
@@ -84,6 +87,8 @@ export default function AccessPage() {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "100vh", fontFamily: "sans-serif", overflow: "hidden" }}>
+
+      {/* IZQUIERDA */}
       <div style={{ background: "#071a0e", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 40px", position: "relative", overflowY: "auto", height: "100vh" }}>
         <div style={{ width: "380px", marginBottom: "24px" }}>
           <div style={{ color: "#4ade80", fontSize: "16px", fontWeight: 500 }}>Surco.trade</div>
@@ -95,12 +100,15 @@ export default function AccessPage() {
             <div style={{ textAlign: "center", marginBottom: "24px" }}>
               <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "12px" }}>Buyer access</div>
               <h2 style={{ color: "white", fontSize: "20px", fontWeight: 600, margin: "0 0 4px" }}>
-                {mode === "signin" ? "Sign in to your account" : "Create your account"}
+                {forgotMode ? "Reset your password" : mode === "signin" ? "Sign in to your account" : "Create your account"}
               </h2>
               <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>Corporate accounts only.</p>
             </div>
+
             {error && <div style={{ background: "rgba(248,113,113,0.1)", border: "0.5px solid rgba(248,113,113,0.3)", borderRadius: "6px", padding: "10px 12px", color: "#f87171", fontSize: "12px", marginBottom: "16px" }}>{error}</div>}
-            {mode === "signin" && (
+
+            {/* SIGN IN */}
+            {mode === "signin" && !forgotMode && (
               <div>
                 <div style={fld}>
                   <label style={lbl}>Company email</label>
@@ -116,12 +124,7 @@ export default function AccessPage() {
                   </div>
                 </div>
                 <div style={{ textAlign: "right", marginBottom: "20px" }}>
-                  <span onClick={async () => {
-  const email = (document.getElementById("si-email") as HTMLInputElement).value;
-  if (!email) { alert("Enter your email first."); return; }
-  await supabase.auth.resetPasswordForEmail(email, { redirectTo: "https://surco-trade.vercel.app/reset-password" });
-  alert("Check your email for the reset link.");
-}} style={{ color: "#4ade80", fontSize: "12px", cursor: "pointer" }}>Forgot password?</span>
+                  <span onClick={() => setForgotMode(true)} style={{ color: "#4ade80", fontSize: "12px", cursor: "pointer" }}>Forgot password?</span>
                 </div>
                 <button onClick={handleSignIn} disabled={loading} style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer" }}>
                   {loading ? "Signing in..." : "Continue →"}
@@ -131,6 +134,41 @@ export default function AccessPage() {
                 </p>
               </div>
             )}
+
+            {/* FORGOT PASSWORD */}
+            {forgotMode && (
+              <div>
+                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px", textAlign: "center" }}>
+                  Enter your company email and we'll send you a link to reset your password.
+                </p>
+                {forgotSent ? (
+                  <div style={{ textAlign: "center", padding: "16px 0" }}>
+                    <div style={{ color: "#4ade80", fontSize: "32px", marginBottom: "10px" }}>✓</div>
+                    <p style={{ color: "white", fontSize: "14px", fontWeight: 500 }}>Email sent!</p>
+                    <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "12px", marginTop: "6px" }}>Check your inbox for the reset link.</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={fld}>
+                      <label style={lbl}>Company email</label>
+                      <input style={inp} type="email" placeholder="john@acmeseafood.com" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} />
+                    </div>
+                    <button onClick={async () => {
+                      if (!forgotEmail) return;
+                      await supabase.auth.resetPasswordForEmail(forgotEmail, { redirectTo: "https://surco-trade.vercel.app/reset-password" });
+                      setForgotSent(true);
+                    }} style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer", marginBottom: "12px" }}>
+                      Send reset link →
+                    </button>
+                  </div>
+                )}
+                <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px", textAlign: "center", marginTop: "8px" }}>
+                  <span onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(""); }} style={{ color: "#4ade80", cursor: "pointer" }}>← Back to sign in</span>
+                </p>
+              </div>
+            )}
+
+            {/* REGISTER */}
             {mode === "register" && (
               <div>
                 <div style={fld}>
@@ -193,6 +231,8 @@ export default function AccessPage() {
           <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", cursor: "pointer" }}>Privacy</span>
         </div>
       </div>
+
+      {/* DERECHA — fija */}
       <div style={{ background: "#020806", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 56px", position: "sticky", top: 0, height: "100vh", overflow: "hidden", borderLeft: "0.5px solid rgba(255,255,255,0.05)" }}>
         {[{ s: "500px", t: "-120px", r: "-160px" }, { s: "280px", t: "-30px", r: "-50px" }, { s: "400px", b: "-150px", l: "-120px" }].map((d, i) => (
           <div key={i} style={{ position: "absolute", width: d.s, height: d.s, borderRadius: "50%", border: "0.5px solid rgba(74,222,128,0.06)", top: (d as any).t, right: (d as any).r, bottom: (d as any).b, left: (d as any).l }} />
@@ -220,6 +260,7 @@ export default function AccessPage() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
