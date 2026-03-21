@@ -211,6 +211,77 @@ export default function Home() {
           ))}
         </div>
       </div>
+{/* ECOSISTEMA */}
+      <div style={{ background: "#040d06", minHeight: "100vh", padding: "80px 48px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <style>{`
+          @keyframes arcspin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+          @keyframes arrowspin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+          @keyframes ecosyspulse { 0%{transform:translate(-50%,-50%) scale(1);opacity:1} 100%{transform:translate(-50%,-50%) scale(2);opacity:0} }
+          .enode-box:hover { border-color: rgba(74,222,128,0.5) !important; background: #0a2414 !important; }
+        `}</style>
+        <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 12px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "16px" }}>Our ecosystem</div>
+        <h2 style={{ color: "white", fontSize: "32px", fontWeight: 500, letterSpacing: "-0.5px", marginBottom: "6px" }}>How Surco.trade works.</h2>
+        <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "48px" }}>From verified farms to global buyers — we handle the entire bridge.</p>
+
+        <div style={{ position: "relative", width: "520px", height: "520px", margin: "0 auto" }}>
+          <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} viewBox="0 0 520 520" fill="none">
+            <circle cx="260" cy="260" r="190" stroke="rgba(74,222,128,0.12)" strokeWidth="1"/>
+            <line x1="260" y1="260" x2="260" y2="70" stroke="#4ade80" strokeWidth="0.5" strokeDasharray="4 5" opacity="0.25"/>
+            <line x1="260" y1="260" x2="450" y2="260" stroke="#4ade80" strokeWidth="0.5" strokeDasharray="4 5" opacity="0.25"/>
+            <line x1="260" y1="260" x2="260" y2="450" stroke="#4ade80" strokeWidth="0.5" strokeDasharray="4 5" opacity="0.25"/>
+            <line x1="260" y1="260" x2="70" y2="260" stroke="#4ade80" strokeWidth="0.5" strokeDasharray="4 5" opacity="0.25"/>
+            <circle cx="260" cy="70" r="3" fill="#4ade80" opacity="0.5"/>
+            <circle cx="450" cy="260" r="3" fill="#4ade80" opacity="0.5"/>
+            <circle cx="260" cy="450" r="3" fill="#4ade80" opacity="0.5"/>
+            <circle cx="70" cy="260" r="3" fill="#4ade80" opacity="0.5"/>
+            <circle cx="260" cy="260" r="190" stroke="#4ade80" strokeWidth="2" strokeDasharray="120 1074" strokeLinecap="round" opacity="0.7" style={{ transformOrigin: "260px 260px", animation: "arcspin 4s linear infinite" }}/>
+            <g style={{ transformOrigin: "260px 260px", animation: "arrowspin 4s linear infinite" }}>
+              <polygon points="260,68 255,82 265,82" fill="#4ade80" opacity="0.8"/>
+            </g>
+          </svg>
+
+          {/* Pulse */}
+          <div style={{ position: "absolute", top: "50%", left: "50%", width: "120px", height: "120px", borderRadius: "50%", border: "1px solid rgba(74,222,128,0.2)", transform: "translate(-50%, -50%)", animation: "ecosyspulse 3s ease-out infinite" }}/>
+          <div style={{ position: "absolute", top: "50%", left: "50%", width: "120px", height: "120px", borderRadius: "50%", border: "1px solid rgba(74,222,128,0.1)", transform: "translate(-50%, -50%)", animation: "ecosyspulse 3s ease-out infinite 1.5s" }}/>
+
+          {/* Center */}
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "120px", height: "120px", background: "#071a0e", border: "1px solid rgba(74,222,128,0.35)", borderRadius: "50%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+            <div style={{ color: "#4ade80", fontSize: "13px", fontWeight: 600 }}>Surco.trade</div>
+            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "9px", marginTop: "3px" }}>B2B Platform</div>
+          </div>
+
+          {/* NORTH: Producers */}
+          {[
+            { label: "Producers", sub: "Verified farms", pos: { top: "calc(50% - 245px)", left: "calc(50% - 55px)" }, icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#4ade80" strokeWidth="1.2" strokeLinecap="round"><path d="M16 6 C12 6 8 9 8 13 C8 18 12 20 16 20 C20 20 24 18 24 13 C24 9 20 6 16 6Z"/><line x1="10" y1="20" x2="7" y2="27"/><line x1="22" y1="20" x2="25" y2="27"/><line x1="16" y1="20" x2="16" y2="27"/><line x1="5" y1="27" x2="27" y2="27"/></svg> },
+            { label: "Certifications", sub: "Export documents", pos: { top: "calc(50% - 55px)", left: "calc(50% + 135px)" }, icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#4ade80" strokeWidth="1.2" strokeLinecap="round"><rect x="6" y="3" width="20" height="26" rx="2"/><line x1="11" y1="10" x2="21" y2="10"/><line x1="11" y1="15" x2="21" y2="15"/><line x1="11" y1="20" x2="17" y2="20"/><path d="M19 22 L22 25 L28 18"/></svg> },
+            { label: "Logistics", sub: "Freight & port", pos: { top: "calc(50% + 135px)", left: "calc(50% - 55px)" }, icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#4ade80" strokeWidth="1.2" strokeLinecap="round"><rect x="2" y="12" width="18" height="12" rx="2"/><path d="M20 16 L27 16 L29 22 L29 24 L20 24"/><circle cx="8" cy="26" r="2.5"/><circle cx="24" cy="26" r="2.5"/></svg> },
+            { label: "Buyers", sub: "Global importers", pos: { top: "calc(50% - 55px)", left: "calc(50% - 245px)" }, icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#4ade80" strokeWidth="1.2" strokeLinecap="round"><circle cx="10" cy="10" r="4"/><circle cx="22" cy="10" r="4"/><path d="M4 28 C4 22 7 20 10 20"/><path d="M28 28 C28 22 25 20 22 20"/><path d="M10 20 C12 24 20 24 22 20"/></svg> },
+          ].map(node => (
+            <div key={node.label} className="enode-box" style={{ position: "absolute", width: "110px", ...node.pos }}>
+              <div style={{ background: "#071a0e", border: "0.5px solid rgba(74,222,128,0.2)", borderRadius: "14px", padding: "14px 10px", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", transition: "all 0.3s" }}>
+                {node.icon}
+                <div style={{ color: "white", fontSize: "11px", fontWeight: 500 }}>{node.label}</div>
+                <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "9px", textAlign: "center", lineHeight: 1.3 }}>{node.sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "48px", marginTop: "48px", paddingTop: "40px", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
+          {[
+            { val: "22", label: "Slots per container" },
+            { val: "7", label: "Destination ports" },
+            { val: "3", label: "Languages" },
+            { val: "FOB", label: "Trade terms" },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: "center" }}>
+              <div style={{ color: "white", fontSize: "26px", fontWeight: 600 }}>{s.val}</div>
+              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "3px" }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* HERO ILUSTRACIONES - fondo 2 (más oscuro) */}
       <div style={{ background: "#040d06", padding: "80px 48px", display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr", gap: "40px", alignItems: "center" }}>
