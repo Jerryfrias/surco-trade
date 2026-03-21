@@ -267,20 +267,7 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Stats */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "48px", marginTop: "48px", paddingTop: "40px", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-          {[
-            { val: "22", label: "Slots per container" },
-            { val: "7", label: "Destination ports" },
-            { val: "3", label: "Languages" },
-            { val: "FOB", label: "Trade terms" },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ color: "white", fontSize: "26px", fontWeight: 600 }}>{s.val}</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "3px" }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+
       </div>
 
       {/* HERO ILUSTRACIONES - fondo 2 (más oscuro) */}
