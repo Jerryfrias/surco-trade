@@ -174,7 +174,7 @@ export default function Home() {
                 overflow: "hidden",
                 position: "relative",
                 ...(active === i
-                  ? { flex: "0 0 420px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "48px 40px" }
+                  ? { flex: "1", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "48px 40px" }
                   : { flex: "0 0 90px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "flex-end", paddingBottom: "28px" }
                 )
               }}
@@ -209,6 +209,76 @@ export default function Home() {
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* HERO ILUSTRACIONES */}
+      <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", padding: "80px 48px", display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr", gap: "40px", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <svg width="220" height="200" viewBox="0 0 220 200" fill="none">
+            <path d="M10 60 Q40 20 80 40" stroke="#4ade80" strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/>
+            <path d="M60 60 L160 60 L190 40 L90 40 Z" fill="#0a2414" stroke="#4ade80" strokeWidth="1.2"/>
+            <path d="M160 60 L190 40 L190 130 L160 150 Z" fill="#071a0e" stroke="#4ade80" strokeWidth="1.2"/>
+            <path d="M60 60 L160 60 L160 150 L60 150 Z" fill="#0d2e1a" stroke="#4ade80" strokeWidth="1.2"/>
+            <line x1="85" y1="60" x2="85" y2="150" stroke="#4ade80" strokeWidth="0.5" opacity="0.4"/>
+            <line x1="110" y1="60" x2="110" y2="150" stroke="#4ade80" strokeWidth="0.5" opacity="0.4"/>
+            <line x1="135" y1="60" x2="135" y2="150" stroke="#4ade80" strokeWidth="0.5" opacity="0.4"/>
+            <line x1="110" y1="65" x2="110" y2="145" stroke="#4ade80" strokeWidth="1" opacity="0.6"/>
+            <rect x="100" y="100" width="6" height="4" rx="1" fill="#4ade80" opacity="0.6"/>
+            <rect x="112" y="100" width="6" height="4" rx="1" fill="#4ade80" opacity="0.6"/>
+            <rect x="155" y="32" width="30" height="12" rx="2" fill="#0a2414" stroke="#4ade80" strokeWidth="0.8"/>
+            <line x1="158" y1="35" x2="182" y2="35" stroke="#4ade80" strokeWidth="0.5" opacity="0.5"/>
+            <line x1="158" y1="38" x2="182" y2="38" stroke="#4ade80" strokeWidth="0.5" opacity="0.5"/>
+            <line x1="158" y1="41" x2="182" y2="41" stroke="#4ade80" strokeWidth="0.5" opacity="0.5"/>
+            <ellipse cx="80" cy="155" rx="8" ry="4" fill="#071a0e" stroke="#4ade80" strokeWidth="1"/>
+            <ellipse cx="140" cy="155" rx="8" ry="4" fill="#071a0e" stroke="#4ade80" strokeWidth="1"/>
+            <ellipse cx="165" cy="148" rx="6" ry="3" fill="#071a0e" stroke="#4ade80" strokeWidth="0.8"/>
+            <rect x="62" y="68" width="40" height="14" rx="3" fill="rgba(74,222,128,0.12)" stroke="#4ade80" strokeWidth="0.5"/>
+            <text x="82" y="78" textAnchor="middle" fill="#4ade80" fontSize="7" fontFamily="monospace">-18°C</text>
+            <rect x="30" y="90" width="52" height="22" rx="4" fill="#0a2414" stroke="rgba(74,222,128,0.3)" strokeWidth="0.5"/>
+            <text x="56" y="99" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="6.5" fontFamily="sans-serif">20ft Reefer</text>
+            <text x="56" y="108" textAnchor="middle" fill="#4ade80" fontSize="6.5" fontFamily="sans-serif">22 tons · 22 slots</text>
+          </svg>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 12px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "24px" }}>B2B Export Platform</div>
+          <h2 style={{ color: "white", fontSize: "40px", fontWeight: 500, lineHeight: 1.15, letterSpacing: "-1px", marginBottom: "16px" }}>
+            From the farm<br />to your port.<br />
+            <span style={{ color: "#4ade80", fontWeight: 700 }}>Fair prices.</span>
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px", lineHeight: 1.6, marginBottom: "32px" }}>
+            No middlemen. Your volume.
+          </p>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+            <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "13px 28px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Book a demo</button>
+            <button style={{ background: "transparent", color: "white", fontSize: "14px", padding: "13px 28px", borderRadius: "50px", border: "1.5px solid rgba(255,255,255,0.25)", cursor: "pointer" }}>Browse products</button>
+          </div>
+          <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginTop: "12px", fontStyle: "italic" }}>No commitment required</p>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+          <svg width="220" height="200" viewBox="0 0 220 200" fill="none">
+            <path d="M210 60 Q180 20 140 40" stroke="#4ade80" strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/>
+            <path d="M30 70 L110 70 L140 50 L60 50 Z" fill="#0a2414" stroke="#4ade80" strokeWidth="1.2"/>
+            <path d="M110 70 L140 50 L140 140 L110 160 Z" fill="#071a0e" stroke="#4ade80" strokeWidth="1.2"/>
+            <path d="M30 70 L110 70 L110 160 L30 160 Z" fill="#0d2e1a" stroke="#4ade80" strokeWidth="1.2"/>
+            <rect x="55" y="110" width="30" height="50" rx="1" fill="#071a0e" stroke="#4ade80" strokeWidth="0.8"/>
+            <line x1="70" y1="110" x2="70" y2="160" stroke="#4ade80" strokeWidth="0.5" opacity="0.5"/>
+            <line x1="56" y1="120" x2="84" y2="120" stroke="#4ade80" strokeWidth="0.3" opacity="0.4"/>
+            <line x1="56" y1="130" x2="84" y2="130" stroke="#4ade80" strokeWidth="0.3" opacity="0.4"/>
+            <line x1="56" y1="140" x2="84" y2="140" stroke="#4ade80" strokeWidth="0.3" opacity="0.4"/>
+            <line x1="56" y1="150" x2="84" y2="150" stroke="#4ade80" strokeWidth="0.3" opacity="0.4"/>
+            <rect x="35" y="80" width="15" height="12" rx="1" fill="#071a0e" stroke="#4ade80" strokeWidth="0.6"/>
+            <rect x="90" y="80" width="15" height="12" rx="1" fill="#071a0e" stroke="#4ade80" strokeWidth="0.6"/>
+            <rect x="95" y="130" width="60" height="30" rx="2" fill="#0a2414" stroke="#4ade80" strokeWidth="1"/>
+            <path d="M155 135 L175 140 L175 160 L155 160 Z" fill="#0d2e1a" stroke="#4ade80" strokeWidth="1"/>
+            <path d="M157 137 L173 141 L173 150 L157 150 Z" fill="#071a0e" stroke="#4ade80" strokeWidth="0.5"/>
+            <ellipse cx="110" cy="162" rx="8" ry="5" fill="#071a0e" stroke="#4ade80" strokeWidth="1"/>
+            <ellipse cx="145" cy="162" rx="8" ry="5" fill="#071a0e" stroke="#4ade80" strokeWidth="1"/>
+            <ellipse cx="168" cy="162" rx="6" ry="4" fill="#071a0e" stroke="#4ade80" strokeWidth="0.8"/>
+            <rect x="140" y="88" width="60" height="22" rx="4" fill="#0a2414" stroke="rgba(74,222,128,0.3)" strokeWidth="0.5"/>
+            <text x="170" y="97" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="6.5" fontFamily="sans-serif">Guayaquil → World</text>
+            <text x="170" y="106" textAnchor="middle" fill="#4ade80" fontSize="6.5" fontFamily="sans-serif">FOB · Direct export</text>
+          </svg>
         </div>
       </div>
 
