@@ -62,7 +62,7 @@ export default function Home() {
       </nav>
 
       {/* HERO - fondo 1 */}
-      <div style={{ background: "#071a0e", minHeight: "100vh", padding: "64px 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center", alignContent: "center" }}>
+     <div style={{ background: "#071a0e", minHeight: "calc(100vh - 80px)", padding: "64px 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center", alignContent: "center" }}>
         <div>
           <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "20px", border: "0.5px solid rgba(74,222,128,0.3)" }}>
             B2B Agricultural Marketplace
