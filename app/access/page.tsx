@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { createClient } from "@/lib/supabase";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const BLOCKED_DOMAINS = ["gmail","hotmail","yahoo","outlook","icloud","aol","live","msn","ymail","protonmail"];
 const PRODUCTS = ["Seafood", "Fruits", "Agro", "Floriculture", "Poultry"];
@@ -23,9 +23,10 @@ export default function AccessPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (typeof window !== "undefined") {
-    setTimeout(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
-  }
+  useEffect(() => {
+    const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
+    return () => clearInterval(iv);
+  }, []);
 
   const toggleProduct = (p: string) => {
     setSelectedProducts(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
@@ -46,7 +47,6 @@ export default function AccessPage() {
     setError("");
     const email = (document.getElementById("si-email") as HTMLInputElement).value;
     const password = (document.getElementById("si-pw") as HTMLInputElement).value;
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
     window.location.href = "/my-account";
@@ -58,7 +58,6 @@ export default function AccessPage() {
     const email = (document.getElementById("reg-email") as HTMLInputElement).value;
     if (!validateEmail(email)) { setLoading(false); return; }
     const password = (document.getElementById("reg-pw") as HTMLInputElement).value;
-    const supabase = createClient();
     const { error: signUpError } = await supabase.auth.signUp({ email, password });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
     const { data: { user } } = await supabase.auth.getUser();
@@ -84,12 +83,10 @@ export default function AccessPage() {
   const fld: React.CSSProperties = { marginBottom: "14px" };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <div style={{ background: "#071a0e", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 40px", position: "relative" }}>
-        <div style={{ position: "absolute", top: "24px", left: "32px", color: "#4ade80", fontSize: "16px", fontWeight: 500 }}>Surco.trade</div>
-        <div style={{ position: "absolute", bottom: "24px", left: "32px", color: "rgba(255,255,255,0.15)", fontSize: "11px" }}>© 2026 Surco.trade</div>
-        <div style={{ position: "absolute", bottom: "24px", right: "32px", display: "flex", gap: "16px" }}>
-          {["Terms", "Privacy"].map(t => <span key={t} style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", cursor: "pointer" }}>{t}</span>)}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "100vh", fontFamily: "sans-serif", overflow: "hidden" }}>
+      <div style={{ background: "#071a0e", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 40px", position: "relative", overflowY: "auto", height: "100vh" }}>
+        <div style={{ width: "380px", marginBottom: "24px" }}>
+          <div style={{ color: "#4ade80", fontSize: "16px", fontWeight: 500 }}>Surco.trade</div>
         </div>
         <div style={{ position: "relative", width: "380px" }}>
           <div style={{ background: "#0a2414", borderRadius: "18px", height: "60px", position: "absolute", width: "380px", transform: "rotate(2.5deg) translateY(10px)", border: "0.5px solid rgba(74,222,128,0.08)" }} />
@@ -185,8 +182,13 @@ export default function AccessPage() {
             )}
           </div>
         </div>
+        <div style={{ width: "380px", marginTop: "24px", display: "flex", gap: "16px" }}>
+          <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px" }}>© 2026 Surco.trade</span>
+          <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", cursor: "pointer" }}>Terms</span>
+          <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", cursor: "pointer" }}>Privacy</span>
+        </div>
       </div>
-      <div style={{ background: "#020806", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 56px", position: "relative", overflow: "hidden", borderLeft: "0.5px solid rgba(255,255,255,0.05)" }}>
+      <div style={{ background: "#020806", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 56px", position: "sticky", top: 0, height: "100vh", overflow: "hidden", borderLeft: "0.5px solid rgba(255,255,255,0.05)" }}>
         {[{ s: "500px", t: "-120px", r: "-160px" }, { s: "280px", t: "-30px", r: "-50px" }, { s: "400px", b: "-150px", l: "-120px" }].map((d, i) => (
           <div key={i} style={{ position: "absolute", width: d.s, height: d.s, borderRadius: "50%", border: "0.5px solid rgba(74,222,128,0.06)", top: (d as any).t, right: (d as any).r, bottom: (d as any).b, left: (d as any).l }} />
         ))}
