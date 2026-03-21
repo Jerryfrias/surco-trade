@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase";
 
 const BLOCKED_DOMAINS = ["gmail","hotmail","yahoo","outlook","icloud","aol","live","msn","ymail","protonmail"];
 const PRODUCTS = ["Seafood", "Fruits", "Agro", "Floriculture", "Poultry"];
@@ -19,8 +20,9 @@ export default function AccessPage() {
   const [showPw, setShowPw] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>(["Seafood"]);
   const [emailError, setEmailError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Rotar quotes
   if (typeof window !== "undefined") {
     setTimeout(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
   }
@@ -39,6 +41,43 @@ export default function AccessPage() {
     return true;
   };
 
+  const handleSignIn = async () => {
+    setLoading(true);
+    setError("");
+    const email = (document.getElementById("si-email") as HTMLInputElement).value;
+    const password = (document.getElementById("si-pw") as HTMLInputElement).value;
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setError(error.message); setLoading(false); return; }
+    window.location.href = "/my-account";
+  };
+
+  const handleRegister = async () => {
+    setLoading(true);
+    setError("");
+    const email = (document.getElementById("reg-email") as HTMLInputElement).value;
+    if (!validateEmail(email)) { setLoading(false); return; }
+    const password = (document.getElementById("reg-pw") as HTMLInputElement).value;
+    const supabase = createClient();
+    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    if (signUpError) { setError(signUpError.message); setLoading(false); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("compradores").insert({
+        email,
+        company: (document.getElementById("reg-company") as HTMLInputElement).value,
+        first_name: (document.getElementById("reg-fn") as HTMLInputElement).value,
+        last_name: (document.getElementById("reg-ln") as HTMLInputElement).value,
+        country: (document.getElementById("reg-country") as HTMLSelectElement).value,
+        whatsapp: (document.getElementById("reg-wa") as HTMLInputElement).value,
+        port: (document.getElementById("reg-port") as HTMLSelectElement).value,
+        products: selectedProducts,
+        volume: (document.getElementById("reg-vol") as HTMLSelectElement).value,
+      });
+    }
+    window.location.href = "/my-account";
+  };
+
   const inp: React.CSSProperties = { width: "100%", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "11px 14px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" };
   const lbl: React.CSSProperties = { color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "0.5px", textTransform: "uppercase", marginBottom: "6px", display: "block" };
   const sel: React.CSSProperties = { ...inp, appearance: "none" as const };
@@ -46,23 +85,16 @@ export default function AccessPage() {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "100vh", fontFamily: "sans-serif" }}>
-
-      {/* IZQUIERDA — FORMULARIO */}
       <div style={{ background: "#071a0e", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 40px", position: "relative" }}>
         <div style={{ position: "absolute", top: "24px", left: "32px", color: "#4ade80", fontSize: "16px", fontWeight: 500 }}>Surco.trade</div>
         <div style={{ position: "absolute", bottom: "24px", left: "32px", color: "rgba(255,255,255,0.15)", fontSize: "11px" }}>© 2026 Surco.trade</div>
         <div style={{ position: "absolute", bottom: "24px", right: "32px", display: "flex", gap: "16px" }}>
           {["Terms", "Privacy"].map(t => <span key={t} style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", cursor: "pointer" }}>{t}</span>)}
         </div>
-
-        {/* Cards apilados */}
         <div style={{ position: "relative", width: "380px" }}>
           <div style={{ background: "#0a2414", borderRadius: "18px", height: "60px", position: "absolute", width: "380px", transform: "rotate(2.5deg) translateY(10px)", border: "0.5px solid rgba(74,222,128,0.08)" }} />
           <div style={{ background: "#0d2e1a", borderRadius: "18px", height: "60px", position: "absolute", width: "380px", transform: "rotate(-1.2deg) translateY(5px)", border: "0.5px solid rgba(74,222,128,0.1)" }} />
-
-          {/* Card principal */}
           <div style={{ background: "#0a2414", border: "0.5px solid rgba(74,222,128,0.2)", borderRadius: "16px", padding: "32px 28px", width: "380px", position: "relative", zIndex: 10 }}>
-
             <div style={{ textAlign: "center", marginBottom: "24px" }}>
               <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", border: "0.5px solid rgba(74,222,128,0.3)", marginBottom: "12px" }}>Buyer access</div>
               <h2 style={{ color: "white", fontSize: "20px", fontWeight: 600, margin: "0 0 4px" }}>
@@ -70,18 +102,17 @@ export default function AccessPage() {
               </h2>
               <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>Corporate accounts only.</p>
             </div>
-
-            {/* SIGN IN */}
+            {error && <div style={{ background: "rgba(248,113,113,0.1)", border: "0.5px solid rgba(248,113,113,0.3)", borderRadius: "6px", padding: "10px 12px", color: "#f87171", fontSize: "12px", marginBottom: "16px" }}>{error}</div>}
             {mode === "signin" && (
               <div>
                 <div style={fld}>
                   <label style={lbl}>Company email</label>
-                  <input style={inp} type="email" placeholder="john@acmeseafood.com" />
+                  <input id="si-email" style={inp} type="email" placeholder="john@acmeseafood.com" />
                 </div>
                 <div style={fld}>
                   <label style={lbl}>Password</label>
                   <div style={{ position: "relative" }}>
-                    <input style={{ ...inp, paddingRight: "52px" }} type={showPw ? "text" : "password"} placeholder="••••••••" />
+                    <input id="si-pw" style={{ ...inp, paddingRight: "52px" }} type={showPw ? "text" : "password"} placeholder="••••••••" />
                     <span onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>
                       {showPw ? "HIDE" : "SHOW"}
                     </span>
@@ -90,41 +121,39 @@ export default function AccessPage() {
                 <div style={{ textAlign: "right", marginBottom: "20px" }}>
                   <span style={{ color: "#4ade80", fontSize: "12px", cursor: "pointer" }}>Forgot password?</span>
                 </div>
-                <button style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer" }}>
-                  Continue →
+                <button onClick={handleSignIn} disabled={loading} style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer" }}>
+                  {loading ? "Signing in..." : "Continue →"}
                 </button>
                 <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px", textAlign: "center", marginTop: "16px" }}>
                   No account? <span onClick={() => setMode("register")} style={{ color: "#4ade80", cursor: "pointer", fontWeight: 500 }}>Create one →</span>
                 </p>
               </div>
             )}
-
-            {/* REGISTER */}
             {mode === "register" && (
               <div>
                 <div style={fld}>
                   <label style={lbl}>Company name</label>
-                  <input style={inp} type="text" placeholder="Acme Seafood B.V." />
+                  <input id="reg-company" style={inp} type="text" placeholder="Acme Seafood B.V." />
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <div style={fld}><label style={lbl}>First name</label><input style={inp} placeholder="John" /></div>
-                  <div style={fld}><label style={lbl}>Last name</label><input style={inp} placeholder="Smith" /></div>
+                  <div style={fld}><label style={lbl}>First name</label><input id="reg-fn" style={inp} placeholder="John" /></div>
+                  <div style={fld}><label style={lbl}>Last name</label><input id="reg-ln" style={inp} placeholder="Smith" /></div>
                 </div>
                 <div style={fld}>
                   <label style={lbl}>Company email</label>
-                  <input style={{ ...inp, borderColor: emailError ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.12)" }} type="email" placeholder="john@acmeseafood.com" onChange={e => validateEmail(e.target.value)} />
+                  <input id="reg-email" style={{ ...inp, borderColor: emailError ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.12)" }} type="email" placeholder="john@acmeseafood.com" onChange={e => validateEmail(e.target.value)} />
                   {emailError && <div style={{ color: "#f87171", fontSize: "11px", marginTop: "4px" }}>{emailError}</div>}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div style={fld}>
                     <label style={lbl}>Country</label>
-                    <select style={sel}><option value="">Country</option>{COUNTRIES.map(c => <option key={c}>{c}</option>)}</select>
+                    <select id="reg-country" style={sel}><option value="">Country</option>{COUNTRIES.map(c => <option key={c}>{c}</option>)}</select>
                   </div>
-                  <div style={fld}><label style={lbl}>WhatsApp</label><input style={inp} placeholder="+31 6 00000000" /></div>
+                  <div style={fld}><label style={lbl}>WhatsApp</label><input id="reg-wa" style={inp} placeholder="+31 6 00000000" /></div>
                 </div>
                 <div style={fld}>
                   <label style={lbl}>Destination port</label>
-                  <select style={sel}><option value="">Select port</option>{PORTS.map(p => <option key={p}>{p}</option>)}</select>
+                  <select id="reg-port" style={sel}><option value="">Select port</option>{PORTS.map(p => <option key={p}>{p}</option>)}</select>
                 </div>
                 <div style={fld}>
                   <label style={{ ...lbl, marginBottom: "8px" }}>Products of interest</label>
@@ -136,38 +165,33 @@ export default function AccessPage() {
                 </div>
                 <div style={fld}>
                   <label style={lbl}>Monthly volume</label>
-                  <select style={sel}><option value="">Select volume</option>{VOLUMES.map(v => <option key={v}>{v}</option>)}</select>
+                  <select id="reg-vol" style={sel}><option value="">Select volume</option>{VOLUMES.map(v => <option key={v}>{v}</option>)}</select>
                 </div>
                 <div style={fld}>
                   <label style={lbl}>Password</label>
-                  <input style={inp} type="password" placeholder="Min. 8 characters" />
+                  <input id="reg-pw" style={inp} type="password" placeholder="Min. 8 characters" />
                 </div>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "14px" }}>
                   <input type="checkbox" style={{ marginTop: "2px", accentColor: "#4ade80" }} />
                   <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", lineHeight: 1.6 }}>I agree to <span style={{ color: "#4ade80", cursor: "pointer" }}>Terms</span> & <span style={{ color: "#4ade80", cursor: "pointer" }}>Privacy Policy</span>.</span>
                 </div>
-                <button style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer" }}>
-                  Create account →
+                <button onClick={handleRegister} disabled={loading} style={{ width: "100%", background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer" }}>
+                  {loading ? "Creating account..." : "Create account →"}
                 </button>
                 <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px", textAlign: "center", marginTop: "14px" }}>
                   Already registered? <span onClick={() => setMode("signin")} style={{ color: "#4ade80", cursor: "pointer", fontWeight: 500 }}>Sign in →</span>
                 </p>
               </div>
             )}
-
           </div>
         </div>
       </div>
-
-      {/* DERECHA — QUOTES */}
       <div style={{ background: "#020806", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 56px", position: "relative", overflow: "hidden", borderLeft: "0.5px solid rgba(255,255,255,0.05)" }}>
         {[{ s: "500px", t: "-120px", r: "-160px" }, { s: "280px", t: "-30px", r: "-50px" }, { s: "400px", b: "-150px", l: "-120px" }].map((d, i) => (
           <div key={i} style={{ position: "absolute", width: d.s, height: d.s, borderRadius: "50%", border: "0.5px solid rgba(74,222,128,0.06)", top: (d as any).t, right: (d as any).r, bottom: (d as any).b, left: (d as any).l }} />
         ))}
-
         <div style={{ maxWidth: "400px", width: "100%" }}>
           <div style={{ color: "rgba(74,222,128,0.4)", fontSize: "52px", lineHeight: 1, marginBottom: "20px", fontFamily: "Georgia, serif" }}>"</div>
-
           <div style={{ position: "relative", minHeight: "200px" }}>
             {quotes.map((q, i) => (
               <div key={i} style={{ position: i === quoteIdx ? "relative" : "absolute", top: 0, left: 0, width: "100%", opacity: i === quoteIdx ? 1 : 0, transform: i === quoteIdx ? "translateY(0)" : "translateY(14px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}>
@@ -182,7 +206,6 @@ export default function AccessPage() {
               </div>
             ))}
           </div>
-
           <div style={{ display: "flex", gap: "8px", marginTop: "28px" }}>
             {quotes.map((_, i) => (
               <div key={i} onClick={() => setQuoteIdx(i)} style={{ height: "3px", width: i === quoteIdx ? "20px" : "8px", borderRadius: "2px", background: i === quoteIdx ? "#4ade80" : "rgba(255,255,255,0.15)", transition: "all 0.3s", cursor: "pointer" }} />
@@ -190,7 +213,6 @@ export default function AccessPage() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
