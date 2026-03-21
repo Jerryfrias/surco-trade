@@ -42,7 +42,7 @@ export default function Home() {
       </div>
 
       {/* NAV */}
-      <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 48px", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
+      <nav style={{ background: "#071a0e", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 48px", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div style={{ color: "#4ade80", fontSize: "18px", fontWeight: 500 }}>Surco.trade</div>
         <div style={{ display: "flex", gap: "28px" }}>
           {["Products", "Producers", "How it works", "About"].map(item => (
@@ -61,8 +61,8 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <div style={{ padding: "64px 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center" }}>
+      {/* HERO - fondo 1 */}
+      <div style={{ background: "#071a0e", padding: "64px 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center" }}>
         <div>
           <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "20px", border: "0.5px solid rgba(74,222,128,0.3)" }}>
             B2B Agricultural Marketplace
@@ -110,8 +110,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PRICE TABLE */}
-      <div style={{ padding: "40px 48px" }}>
+      {/* PRICE TABLE - fondo 2 (más oscuro) */}
+      <div style={{ background: "#040d06", padding: "60px 48px" }}>
         <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "12px", border: "0.5px solid rgba(74,222,128,0.3)" }}>Live prices</div>
         <h2 style={{ fontSize: "26px", fontWeight: 500, letterSpacing: "-0.5px", marginBottom: "6px" }}>Market prices</h2>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", lineHeight: 1.6, marginBottom: "28px" }}>Updated by our team. Prices reflect current export market conditions from Ecuador.</p>
@@ -156,8 +156,8 @@ export default function Home() {
         </table>
       </div>
 
-      {/* CATEGORY SLIDER */}
-      <div style={{ padding: "40px 48px", borderTop: "0.5px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {/* CATEGORY SLIDER - fondo 1 */}
+      <div style={{ background: "#071a0e", padding: "60px 48px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={{ display: "inline-block", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", borderRadius: "4px", marginBottom: "12px", border: "0.5px solid rgba(74,222,128,0.3)" }}>Our categories</div>
         <h2 style={{ fontSize: "26px", fontWeight: 500, letterSpacing: "-0.5px", marginBottom: "32px" }}>What we export.</h2>
         <div style={{ display: "flex", gap: "10px", height: "440px", justifyContent: "center" }}>
@@ -212,8 +212,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* HERO ILUSTRACIONES */}
-      <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", padding: "80px 48px", display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr", gap: "40px", alignItems: "center" }}>
+      {/* HERO ILUSTRACIONES - fondo 2 (más oscuro) */}
+      <div style={{ background: "#040d06", padding: "80px 48px", display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr", gap: "40px", alignItems: "center" }}>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <svg width="220" height="200" viewBox="0 0 220 200" fill="none">
             <path d="M10 60 Q40 20 80 40" stroke="#4ade80" strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/>
@@ -250,7 +250,7 @@ export default function Home() {
             No middlemen. Your volume.
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-            <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "14px", fontWeight: 600, padding: "13px 28px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Book a demo</button>
+            <button style={{ background: "#4ade80", color: "#040d06", fontSize: "14px", fontWeight: 600, padding: "13px 28px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Book a demo</button>
             <button style={{ background: "transparent", color: "white", fontSize: "14px", padding: "13px 28px", borderRadius: "50px", border: "1.5px solid rgba(255,255,255,0.25)", cursor: "pointer" }}>Browse products</button>
           </div>
           <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginTop: "12px", fontStyle: "italic" }}>No commitment required</p>
@@ -283,7 +283,7 @@ export default function Home() {
       </div>
 
       {/* FOOTER */}
-      <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", padding: "28px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "40px" }}>
+      <div style={{ background: "#0a2414", padding: "28px 48px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ color: "#4ade80", fontSize: "15px", fontWeight: 500 }}>Surco.trade</div>
         <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px" }}>© 2026 Surco.trade · All rights reserved</div>
       </div>
