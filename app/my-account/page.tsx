@@ -80,7 +80,7 @@ export default function MyAccountPage() {
   const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [currentConfig, setCurrentConfig] = useState<any>(null);
+  const currentConfigRef = useRef<any>(null);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
@@ -100,26 +100,37 @@ export default function MyAccountPage() {
     window.history.replaceState(null, "", `/my-account?${params.toString()}`);
   };
 
-const toggleFavorite = (producer: any) => {
+  const toggleFavorite = (producer: any) => {
     const exists = favorites.find((f: any) => f.id === producer.id && !f.config);
     const updated = exists ? favorites.filter((f: any) => !(f.id === producer.id && !f.config)) : [...favorites, producer];
     setFavorites(updated);
     localStorage.setItem("surco_favorites", JSON.stringify(updated));
   };
 
-const saveConfig = (config: any) => {
-    const producerId = config.producer.id.toString().replace("-config","").replace(/^fav-/,"");
+  const saveConfig = (config: any) => {
+    const producerId = String(config.producer.id).replace("-config","").replace(/^fav-/,"");
     const fixedId = `fav-${producerId}`;
     const newFav = { ...config.producer, config, id: fixedId };
-    const updated = [...favorites.filter((f: any) => {
-      const fId = f.id.toString().replace("-config","").replace(/^fav-/,"");
-      return fId !== producerId;
-    }), newFav];
-    setFavorites(updated);
-    localStorage.setItem("surco_favorites", JSON.stringify(updated));
+    setFavorites(prev => {
+      const updated = [...prev.filter((f: any) => {
+        const fId = String(f.id).replace("-config","").replace(/^fav-/,"");
+        return fId !== producerId;
+      }), newFav];
+      localStorage.setItem("surco_favorites", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const isFavorite = (producer: any) => favorites.some((f: any) => f.id === producer.id);
+
+  const handleNavigate = (fn: () => void) => {
+    if (selectedProducer?.config && isDirty) {
+      setPendingNavigation(() => fn);
+      setShowUnsavedPopup(true);
+    } else {
+      fn();
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -147,19 +158,10 @@ const saveConfig = (config: any) => {
     return <span style={{ display:"inline-block", fontSize:"10px", padding:"3px 8px", borderRadius:"4px", background:s.bg, color:s.color, border:`0.5px solid ${s.border}` }}>{s.label}</span>;
   };
 
-  const handleNavigate = (fn: () => void) => {
-    if (selectedProducer?.config && isDirty) {
-      setPendingNavigation(() => () => fn());
-      setShowUnsavedPopup(true);
-    } else {
-      fn();
-    }
-  };
-
   const SideItem = ({ id, label, icon, badge }: { id: Section, label: string, icon: React.ReactNode, badge?: number }) => {
     const isActive = section === id && !selectedProductPage && !selectedProducer;
     return (
-      <div onClick={() => handleNavigate(() => { setSection(id); setSelectedProductPage(null); setSelectedProducer(null); updateURL(id); })} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize:"13px", cursor:"pointer", borderLeft:`2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition:"all 0.15s" }}>
+      <div onClick={() => handleNavigate(() => { setSection(id); setSelectedProductPage(null); setSelectedProducer(null); setIsDirty(false); updateURL(id); })} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize:"13px", cursor:"pointer", borderLeft:`2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition:"all 0.15s" }}>
         {icon}
         {label}
         {badge ? <span style={{ marginLeft:"auto", background:"rgba(74,222,128,0.15)", color:"#4ade80", fontSize:"10px", padding:"1px 6px", borderRadius:"10px", border:"0.5px solid rgba(74,222,128,0.3)" }}>{badge}</span> : null}
@@ -197,7 +199,7 @@ const saveConfig = (config: any) => {
   const hasFilters = selCerts.length > 0 || selProcesses.length > 0 || selCountries.length > 0 || selHarvest.length > 0;
 
   const ProducerCard = ({ p }: { p: any }) => (
-    <div key={p.id} onClick={() => { setSelectedProducer(p); updateURL("products", selectedProductPage, p.id); }} style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", overflow:"hidden", cursor:"pointer", position:"relative" }}
+    <div key={p.id} onClick={() => { setSelectedProducer(p); setIsDirty(false); updateURL("products", selectedProductPage, p.id); }} style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", overflow:"hidden", cursor:"pointer", position:"relative" }}
       onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(74,222,128,0.25)")}
       onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}>
       <div style={{ height:"100px", background:"#0a2414", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
@@ -228,7 +230,7 @@ const saveConfig = (config: any) => {
           <span>Min. {p.volumen_minimo}t</span>
         </div>
         <button style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"11px", fontWeight:600, padding:"7px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>
-          {t("View producer →", "Ver productor →")}
+          {t("View producer →","Ver productor →")}
         </button>
       </div>
     </div>
@@ -273,14 +275,15 @@ const saveConfig = (config: any) => {
       {/* CONTENT */}
       <div style={{ overflowY:"auto" }}>
 
+        {/* UNSAVED CHANGES POPUP */}
         {showUnsavedPopup && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <div style={{ background:"#0a2414", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", padding:"28px 32px", maxWidth:"380px", width:"90%" }}>
               <div style={{ color:"white", fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>{t("Unsaved changes","Cambios sin guardar")}</div>
               <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", marginBottom:"24px", lineHeight:1.6 }}>{t("You have unsaved changes to this configuration.","Tienes cambios sin guardar en esta configuración.")}</div>
               <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-               <button onClick={() => {
-                  document.getElementById("btn-update-favorite")?.click();
+                <button onClick={() => {
+                  if (currentConfigRef.current) saveConfig(currentConfigRef.current);
                   setShowUnsavedPopup(false);
                   setIsDirty(false);
                   if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
@@ -311,8 +314,8 @@ const saveConfig = (config: any) => {
             onBack={() => handleNavigate(() => { setSelectedProducer(null); updateURL("products", selectedProductPage); })}
             isFavorite={isFavorite(selectedProducer)}
             onToggleFavorite={() => toggleFavorite(selectedProducer)}
-            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); setCurrentConfig(config); }}
-            onConfigChange={(config) => setCurrentConfig(config)}
+            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); currentConfigRef.current = config; }}
+            onConfigChange={(config) => { currentConfigRef.current = config; }}
             onDirty={() => setIsDirty(true)}
             lang={lang}
           />
@@ -491,28 +494,28 @@ const saveConfig = (config: any) => {
                   </div>
                 ) : (
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"16px" }}>
-                   {favorites.map((f: any) => f.config ? (
-                    <div key={f.id} style={card}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"12px" }}>
-                        <div>
-                          <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"3px" }}>{f.nombre}</div>
-                          <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"11px" }}>{f.region}, {f.country}</div>
+                    {favorites.map((f: any) => f.config ? (
+                      <div key={f.id} style={card}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"12px" }}>
+                          <div>
+                            <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"3px" }}>{f.nombre}</div>
+                            <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"11px" }}>{f.region}, {f.country}</div>
+                          </div>
+                          <div onClick={() => { setFavorites(prev => { const u = prev.filter((x: any) => x.id !== f.id); localStorage.setItem("surco_favorites", JSON.stringify(u)); return u; }); }} style={{ cursor:"pointer", color:"#facc15", fontSize:"18px" }}>★</div>
                         </div>
-                        <div onClick={() => { setFavorites(prev => { const u = prev.filter((x: any) => x.id !== f.id); localStorage.setItem("surco_favorites", JSON.stringify(u)); return u; }); }} style={{ cursor:"pointer", color:"#facc15", fontSize:"18px" }}>★</div>
+                        <div style={{ display:"flex", flexWrap:"wrap" as const, gap:"6px", marginBottom:"12px" }}>
+                          <span style={{ background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{f.config.talla?.label} · ${f.config.talla?.precio}/kg</span>
+                          {f.config.presentacion?.map((p: string) => <span key={p} style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{p}</span>)}
+                          {f.config.proceso?.map((p: string) => <span key={p} style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{p}</span>)}
+                          <span style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{f.config.action === "container" ? `${f.config.qty} container${f.config.qty > 1 ? "s" : ""}` : "Consolidation"}</span>
+                        </div>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(74,222,128,0.06)", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.15)", marginBottom:"12px" }}>
+                          <span style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{t("Estimated total","Total estimado")}</span>
+                          <span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${f.config.totalEstimado?.toLocaleString()}</span>
+                        </div>
+                        <button onClick={() => { setSelectedProducer(f); setIsDirty(false); currentConfigRef.current = f.config; setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
                       </div>
-                      <div style={{ display:"flex", flexWrap:"wrap" as const, gap:"6px", marginBottom:"12px" }}>
-                        <span style={{ background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{f.config.talla?.label} · ${f.config.talla?.precio}/kg</span>
-                        {f.config.presentacion?.map((p: string) => <span key={p} style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{p}</span>)}
-                        {f.config.proceso?.map((p: string) => <span key={p} style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{p}</span>)}
-                        <span style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{f.config.action === "container" ? `${f.config.qty} container${f.config.qty > 1 ? "s" : ""}` : "Consolidation"}</span>
-                      </div>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(74,222,128,0.06)", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.15)", marginBottom:"12px" }}>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{t("Estimated total","Total estimado")}</span>
-                        <span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${f.config.totalEstimado?.toLocaleString()}</span>
-                      </div>
-                      <button onClick={() => { setSelectedProducer(f); setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
-                    </div>
-                  ) : <ProducerCard key={f.id} p={f} />)}
+                    ) : <ProducerCard key={f.id} p={f} />)}
                   </div>
                 )}
               </div>
