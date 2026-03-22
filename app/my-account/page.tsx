@@ -5,6 +5,10 @@ import { supabase } from "@/lib/supabase";
 const SECTIONS = ["overview","browse","orders","products","prices","documents","notifications","support","profile"] as const;
 type Section = typeof SECTIONS[number];
 
+const CERTS = ["ASC","BAP","Organic","GlobalG.A.P.","HACCP","Rainforest","Fair Trade"];
+const PROCESSES = ["Fresh","Frozen","Processed","Whole","Peeled"];
+const REGIONS = ["Pacific Coast","Gulf of Guayaquil","Manabí","El Oro","Esmeraldas"];
+
 const consolidations = [
   { id: "CONS-2026-ROT-0042", product: "Vannamei Shrimp", port: "Rotterdam", price: "$4.20/kg", departure: "Apr 15", daysLeft: 8, slots: 14, total: 22, status: "open" },
   { id: "CONS-2026-ROT-0043", product: "Dragon Fruit", port: "Rotterdam", price: "$1.80/kg", departure: "Apr 10", daysLeft: 3, slots: 20, total: 22, status: "closing" },
@@ -16,7 +20,7 @@ const orders = [
   { id: "CONS-2026-ROT-0038", product: "Cacao", port: "Rotterdam", tons: 1, value: "$3,100", status: "delivered", date: "Feb 10", eta: null, signed: "Feb 7" },
 ];
 
-const products = [
+const allProducts = [
   { name: "Vannamei Shrimp", cat: "Seafood", price: "$4.20/kg", season: "Year-round" },
   { name: "Tilapia Fillet", cat: "Seafood", price: "$2.40/kg", season: "Year-round" },
   { name: "Dragon Fruit", cat: "Fruits", price: "$1.80/kg", season: "Apr–Oct" },
@@ -24,6 +28,17 @@ const products = [
   { name: "Mango Tommy", cat: "Fruits", price: "$1.20/kg", season: "Jan–Apr" },
   { name: "Cacao", cat: "Agro", price: "$3.10/kg", season: "Year-round" },
 ];
+
+const MOCK_PRODUCERS: Record<string, any[]> = {
+  "Vannamei Shrimp": [
+    { id:1, nombre:"Aquafarm El Guabo", region:"Gulf of Guayaquil", anos_experiencia:14, precio_kg:4.10, volumen_minimo:2, proxima_cosecha:"2026-04-05", certificaciones:["ASC","BAP","HACCP"], procesos:["Fresh","Frozen"] },
+    { id:2, nombre:"Mar Pacífico S.A.", region:"Pacific Coast", anos_experiencia:22, precio_kg:4.20, volumen_minimo:5, proxima_cosecha:"2026-04-12", certificaciones:["ASC","BAP","GlobalG.A.P.","HACCP"], procesos:["Fresh","Frozen","Processed"] },
+    { id:3, nombre:"Camaronera Manabí", region:"Manabí", anos_experiencia:8, precio_kg:3.90, volumen_minimo:1, proxima_cosecha:"2026-04-20", certificaciones:["BAP","HACCP"], procesos:["Fresh"] },
+    { id:4, nombre:"Ecuamar Premium", region:"El Oro", anos_experiencia:18, precio_kg:4.20, volumen_minimo:3, proxima_cosecha:"2026-05-01", certificaciones:["ASC","BAP","Organic","HACCP"], procesos:["Fresh","Frozen"] },
+    { id:5, nombre:"Aquacultura del Sur", region:"Pacific Coast", anos_experiencia:11, precio_kg:4.05, volumen_minimo:2, proxima_cosecha:"2026-04-08", certificaciones:["BAP","GlobalG.A.P.","HACCP"], procesos:["Fresh","Frozen"] },
+    { id:6, nombre:"Esmeraldas Shrimp Co.", region:"Esmeraldas", anos_experiencia:6, precio_kg:3.85, volumen_minimo:1, proxima_cosecha:"2026-04-15", certificaciones:["BAP","Fair Trade"], procesos:["Fresh"] },
+  ],
+};
 
 const prices = [
   { name: "Vannamei Shrimp", cat: "Seafood", price: "$4.20/kg", change: "+1.2%", up: true },
@@ -49,11 +64,18 @@ const notifications = [
 
 export default function MyAccountPage() {
   const [section, setSection] = useState<Section>("overview");
+  const [selectedProductPage, setSelectedProductPage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [prodFilter, setProdFilter] = useState("All");
   const [browseFilter, setBrowseFilter] = useState("All");
   const [docFilter, setDocFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("Best match");
+  const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
+  const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [maxPrice, setMaxPrice] = useState(8);
+  const [maxVolume, setMaxVolume] = useState(50);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -71,6 +93,7 @@ export default function MyAccountPage() {
   const card: React.CSSProperties = { background: "#071a0e", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "20px" };
   const inp: React.CSSProperties = { width: "100%", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "10px 14px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" };
   const lbl: React.CSSProperties = { color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "0.5px", textTransform: "uppercase", marginBottom: "6px", display: "block" };
+  const selInp: React.CSSProperties = { ...inp, appearance: "none" as const };
 
   const Badge = ({ status }: { status: string }) => {
     const map: any = {
@@ -82,20 +105,39 @@ export default function MyAccountPage() {
       signed: { bg: "rgba(74,222,128,0.15)", color: "#4ade80", border: "rgba(74,222,128,0.3)", label: "Signed" },
     };
     const s = map[status] || map.open;
-    return <span style={{ display: "inline-block", fontSize: "10px", padding: "3px 8px", borderRadius: "4px", background: s.bg, color: s.color, border: `0.5px solid ${s.border}`, letterSpacing: "0.3px" }}>{s.label}</span>;
+    return <span style={{ display: "inline-block", fontSize: "10px", padding: "3px 8px", borderRadius: "4px", background: s.bg, color: s.color, border: `0.5px solid ${s.border}` }}>{s.label}</span>;
   };
 
-  const SideItem = ({ id, label, icon, badge }: { id: Section, label: string, icon: React.ReactNode, badge?: number }) => (
-    <div onClick={() => setSection(id)} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 20px", color: section === id ? "white" : "rgba(255,255,255,0.4)", fontSize: "13px", cursor: "pointer", borderLeft: `2px solid ${section === id ? "#4ade80" : "transparent"}`, background: section === id ? "rgba(74,222,128,0.06)" : "transparent", transition: "all 0.15s" }}>
-      {icon}
-      {label}
-      {badge ? <span style={{ marginLeft: "auto", background: "rgba(74,222,128,0.15)", color: "#4ade80", fontSize: "10px", padding: "1px 6px", borderRadius: "10px", border: "0.5px solid rgba(74,222,128,0.3)" }}>{badge}</span> : null}
-    </div>
-  );
+  const SideItem = ({ id, label, icon, badge, onClick }: { id?: Section, label: string, icon: React.ReactNode, badge?: number, onClick?: () => void }) => {
+    const isActive = id ? section === id && !selectedProductPage : false;
+    return (
+      <div onClick={onClick || (() => { if(id) { setSection(id); setSelectedProductPage(null); } })} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize: "13px", cursor: "pointer", borderLeft: `2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition: "all 0.15s" }}>
+        {icon}
+        {label}
+        {badge ? <span style={{ marginLeft: "auto", background: "rgba(74,222,128,0.15)", color: "#4ade80", fontSize: "10px", padding: "1px 6px", borderRadius: "10px", border: "0.5px solid rgba(74,222,128,0.3)" }}>{badge}</span> : null}
+      </div>
+    );
+  };
 
   const ic = (d: string) => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d={d}/></svg>;
 
-  const filteredProducts = prodFilter === "All" ? products : products.filter(p => p.cat === prodFilter);
+  // Producers filtered
+  const producers = selectedProductPage ? (MOCK_PRODUCERS[selectedProductPage] || []) : [];
+  const filteredProducers = producers.filter(p => {
+    if (selectedCerts.length > 0 && !selectedCerts.every(c => p.certificaciones?.includes(c))) return false;
+    if (selectedProcesses.length > 0 && !selectedProcesses.some(pr => p.procesos?.includes(pr))) return false;
+    if (selectedRegions.length > 0 && !selectedRegions.includes(p.region)) return false;
+    if (p.precio_kg > maxPrice) return false;
+    if (p.volumen_minimo > maxVolume) return false;
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === "Price: Low to high") return a.precio_kg - b.precio_kg;
+    if (sortBy === "Price: High to low") return b.precio_kg - a.precio_kg;
+    if (sortBy === "Next harvest") return new Date(a.proxima_cosecha).getTime() - new Date(b.proxima_cosecha).getTime();
+    return 0;
+  });
+
+  const filteredProducts = prodFilter === "All" ? allProducts : allProducts.filter(p => p.cat === prodFilter);
   const filteredBrowse = browseFilter === "All" ? consolidations : consolidations.filter(c => {
     if (browseFilter === "Seafood") return ["Vannamei Shrimp","Tilapia Fillet"].includes(c.product);
     if (browseFilter === "Fruits") return ["Dragon Fruit","Organic Banana","Mango Tommy"].includes(c.product);
@@ -132,250 +174,367 @@ export default function MyAccountPage() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ padding: "32px 40px", overflowY: "auto" }}>
+      <div style={{ overflowY: "auto" }}>
 
-        {/* OVERVIEW */}
-        {section === "overview" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
-              <div>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "12px", marginBottom: "4px" }}>Welcome back</div>
-                <h1 style={{ color: "white", fontSize: "20px", fontWeight: 600, margin: 0 }}>{profile?.first_name ? `${profile.first_name} ${profile.last_name}` : user?.email}</h1>
-                <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginTop: "2px" }}>{profile?.company} · {profile?.country}</div>
+        {/* PRODUCERS VIEW */}
+        {selectedProductPage && (
+          <div style={{ display: "grid", gridTemplateColumns: "240px 1fr" }}>
+            {/* Filters */}
+            <div style={{ background: "#071a0e", borderRight: "0.5px solid rgba(255,255,255,0.06)", padding: "24px 20px", minHeight: "100vh" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", cursor: "pointer" }} onClick={() => setSelectedProductPage(null)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                <span style={{ color: "#4ade80", fontSize: "12px" }}>Back to Products</span>
               </div>
-              <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "rgba(74,222,128,0.12)", border: "0.5px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4ade80", fontSize: "12px", fontWeight: 600 }}>
-                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+              <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>Filters</div>
+              <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginBottom: "20px" }}>{filteredProducers.length} producers</div>
+
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Certifications</div>
+                <div>{CERTS.map(c => <span key={c} onClick={() => setSelectedCerts(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])} style={{ display: "inline-flex", padding: "4px 9px", borderRadius: "6px", fontSize: "10px", cursor: "pointer", margin: "2px", border: selectedCerts.includes(c) ? "0.5px solid rgba(74,222,128,0.35)" : "0.5px solid rgba(255,255,255,0.1)", color: selectedCerts.includes(c) ? "#4ade80" : "rgba(255,255,255,0.4)", background: selectedCerts.includes(c) ? "rgba(74,222,128,0.12)" : "transparent" }}>{c}</span>)}</div>
               </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "12px", marginBottom: "28px" }}>
-              {[["Active consolidations","3"],["Orders placed","7"],["Total volume","18 tons"],["Documents","5"]].map(([label, val]) => (
-                <div key={label} style={card}>
-                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{label}</div>
-                  <div style={{ color: "white", fontSize: "22px", fontWeight: 600 }}>{val}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ color: "white", fontSize: "14px", fontWeight: 500, marginBottom: "14px" }}>Your active consolidations</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {consolidations.filter(c => c.status !== "full").map(c => (
-                <div key={c.id} style={{ ...card, display: "grid", gridTemplateColumns: "1fr auto", gap: "16px", alignItems: "center" }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                      <span style={{ color: "white", fontSize: "13px", fontWeight: 500 }}>{c.product} · {c.port}</span>
-                      <Badge status={c.status} />
-                    </div>
-                    <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginBottom: "10px" }}>Departure {c.departure} · {c.price} · {c.daysLeft} days left</div>
-                    <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "4px", height: "4px", overflow: "hidden" }}>
-                      <div style={{ background: c.status === "closing" ? "#fb923c" : "#4ade80", height: "100%", width: `${Math.round(c.slots/c.total*100)}%`, borderRadius: "4px" }} />
-                    </div>
-                  </div>
-                  <button onClick={() => setSection("browse")} style={{ background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px 14px", borderRadius: "50px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>View</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* BROWSE */}
-        {section === "browse" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Browse consolidations</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Available consolidations matching your preferences.</p>
-            <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
-              {["All","Seafood","Fruits"].map(f => (
-                <button key={f} onClick={() => setBrowseFilter(f)} style={{ padding: "6px 14px", fontSize: "11px", cursor: "pointer", borderRadius: "6px", color: browseFilter === f ? "#4ade80" : "rgba(255,255,255,0.4)", background: browseFilter === f ? "rgba(74,222,128,0.12)" : "transparent", border: browseFilter === f ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)" }}>{f}</button>
-              ))}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {filteredBrowse.map(c => (
-                <div key={c.id} style={{ ...card, display: "grid", gridTemplateColumns: "1fr auto", gap: "20px", alignItems: "center", opacity: c.status === "full" ? 0.5 : 1 }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                      <span style={{ color: "white", fontSize: "13px", fontWeight: 500 }}>{c.product} · {c.port}</span>
-                      <Badge status={c.status} />
-                    </div>
-                    <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginBottom: "10px" }}>Departure {c.departure} · FOB Guayaquil · {c.price} · {c.daysLeft > 0 ? `${c.daysLeft} days left` : "Closed"}</div>
-                    <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "4px", height: "4px", overflow: "hidden" }}>
-                      <div style={{ background: c.status === "full" ? "#f87171" : c.status === "closing" ? "#fb923c" : "#4ade80", height: "100%", width: `${Math.round(c.slots/c.total*100)}%`, borderRadius: "4px" }} />
-                    </div>
-                    <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginTop: "5px" }}>{c.slots} / {c.total} slots filled</div>
-                  </div>
-                  <button disabled={c.status === "full"} style={{ background: c.status === "full" ? "rgba(255,255,255,0.06)" : "#4ade80", color: c.status === "full" ? "rgba(255,255,255,0.25)" : "#071a0e", fontSize: "12px", fontWeight: 600, padding: "9px 18px", borderRadius: "50px", border: c.status === "full" ? "0.5px solid rgba(255,255,255,0.08)" : "none", cursor: c.status === "full" ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
-                    {c.status === "full" ? "Full" : "Join →"}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Process</div>
+                <div>{PROCESSES.map(p => <span key={p} onClick={() => setSelectedProcesses(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])} style={{ display: "inline-flex", padding: "4px 9px", borderRadius: "6px", fontSize: "10px", cursor: "pointer", margin: "2px", border: selectedProcesses.includes(p) ? "0.5px solid rgba(74,222,128,0.35)" : "0.5px solid rgba(255,255,255,0.1)", color: selectedProcesses.includes(p) ? "#4ade80" : "rgba(255,255,255,0.4)", background: selectedProcesses.includes(p) ? "rgba(74,222,128,0.12)" : "transparent" }}>{p}</span>)}</div>
+              </div>
 
-        {/* ORDERS */}
-        {section === "orders" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>My orders</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Consolidations you have joined.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {orders.map(o => (
-                <div key={o.id} style={card}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                    <div>
-                      <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>{o.product} · {o.port}</div>
-                      <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>{o.id} · {o.tons} tons · {o.value}</div>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Region</div>
+                {REGIONS.map(r => (
+                  <div key={r} onClick={() => setSelectedRegions(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r])} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0", cursor: "pointer", fontSize: "11px", color: selectedRegions.includes(r) ? "white" : "rgba(255,255,255,0.4)" }}>
+                    <div style={{ width: "13px", height: "13px", borderRadius: "3px", border: selectedRegions.includes(r) ? "none" : "0.5px solid rgba(255,255,255,0.2)", background: selectedRegions.includes(r) ? "#4ade80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {selectedRegions.includes(r) && <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="#071a0e" strokeWidth="1.5" strokeLinecap="round"/></svg>}
                     </div>
-                    <Badge status={o.status} />
+                    {r}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "12px", paddingTop: "12px", borderTop: "0.5px solid rgba(255,255,255,0.06)", flexWrap: "wrap" as const }}>
-                    <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>Departed {o.date}</span>
-                    {o.eta && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>ETA Rotterdam {o.eta}</span>}
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ display: "inline-block", fontSize: "10px", padding: "2px 8px", borderRadius: "4px", background: "rgba(74,222,128,0.12)", color: "#4ade80", border: "0.5px solid rgba(74,222,128,0.3)" }}>Signed {o.signed}</span>
+                ))}
+              </div>
+
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Max price / kg</div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px" }}>$1.00</span>
+                  <span style={{ color: "white", fontSize: "10px" }}>${maxPrice.toFixed(2)}</span>
+                </div>
+                <input type="range" min="1" max="8" step="0.1" value={maxPrice} onChange={e => setMaxPrice(parseFloat(e.target.value))} style={{ width: "100%", accentColor: "#4ade80" }} />
+              </div>
+
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Min. volume</div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px" }}>1 ton</span>
+                  <span style={{ color: "white", fontSize: "10px" }}>{maxVolume} tons</span>
+                </div>
+                <input type="range" min="1" max="50" step="1" value={maxVolume} onChange={e => setMaxVolume(parseInt(e.target.value))} style={{ width: "100%", accentColor: "#4ade80" }} />
+              </div>
+
+              <button onClick={() => { setSelectedCerts([]); setSelectedProcesses([]); setSelectedRegions([]); setMaxPrice(8); setMaxVolume(50); }} style={{ width: "100%", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: "11px", padding: "6px", border: "none", cursor: "pointer" }}>Clear filters</button>
+            </div>
+
+            {/* Producers grid */}
+            <div style={{ padding: "28px 32px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div>
+                  <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "4px" }}>{selectedProductPage}</h2>
+                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>{filteredProducers.length} verified producers · Ecuador</div>
+                </div>
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "8px 12px", color: "white", fontSize: "12px", outline: "none", appearance: "none" as const }}>
+                  {["Best match","Price: Low to high","Price: High to low","Next harvest"].map(o => <option key={o}>{o}</option>)}
+                </select>
+              </div>
+
+              {filteredProducers.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.25)", fontSize: "14px" }}>No producers match your filters.</div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
+                  {filteredProducers.map(p => (
+                    <div key={p.id} style={{ background: "#071a0e", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: "12px", overflow: "hidden", cursor: "pointer" }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(74,222,128,0.25)")}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}>
+                      <div style={{ height: "100px", background: "#0a2414", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="rgba(74,222,128,0.3)" strokeWidth="1.2">
+                          <path d="M10 34 C13 27 20 23 29 25 C35 27 40 22 38 15"/>
+                          <path d="M29 25 C31 30 29 37 24 39 C19 41 13 39 10 34"/>
+                          <circle cx="37" cy="13" r="2" fill="rgba(74,222,128,0.3)" stroke="none"/>
+                        </svg>
+                      </div>
+                      <div style={{ padding: "14px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+                          <div>
+                            <div style={{ color: "white", fontSize: "12px", fontWeight: 500 }}>{p.nombre}</div>
+                            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", marginTop: "2px" }}>{p.region} · {p.anos_experiencia} yrs</div>
+                          </div>
+                          <div style={{ color: "#4ade80", fontSize: "12px", fontWeight: 500 }}>${p.precio_kg.toFixed(2)}/kg</div>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "3px", marginBottom: "10px" }}>
+                          {p.certificaciones?.slice(0,3).map((c: string) => (
+                            <span key={c} style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "0.5px solid rgba(74,222,128,0.25)", fontSize: "9px", padding: "2px 6px", borderRadius: "4px" }}>{c}</span>
+                          ))}
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "10px" }}>
+                          <span>Next: {new Date(p.proxima_cosecha).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                          <span>Min. {p.volumen_minimo}t</span>
+                        </div>
+                        <button style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "8px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>
+                          View producer →
+                        </button>
+                      </div>
                     </div>
-                    <button onClick={() => setSection("documents")} style={{ marginLeft: "auto", background: "transparent", color: "#4ade80", fontSize: "11px", border: "none", cursor: "pointer" }}>View contract →</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* PRODUCTS */}
-        {section === "products" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Product catalog</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Verified products available for export from Ecuador.</p>
-            <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
-              {["All","Seafood","Fruits","Agro"].map(f => (
-                <button key={f} onClick={() => setProdFilter(f)} style={{ padding: "6px 14px", fontSize: "11px", cursor: "pointer", borderRadius: "6px", color: prodFilter === f ? "#4ade80" : "rgba(255,255,255,0.4)", background: prodFilter === f ? "rgba(74,222,128,0.12)" : "transparent", border: prodFilter === f ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)" }}>{f}</button>
-              ))}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px" }}>
-              {filteredProducts.map(p => (
-                <div key={p.name} style={card}>
-                  <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{p.cat}</div>
-                  <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>{p.name}</div>
-                  <div style={{ color: "#4ade80", fontSize: "13px", marginBottom: "4px" }}>{p.price}</div>
-                  <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginBottom: "12px" }}>{p.season}</div>
-                  <button style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "6px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>Request quote</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* PRICES */}
-        {section === "prices" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Live prices</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Current export prices from Ecuador. Updated by our team.</p>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ borderBottom: "0.5px solid rgba(255,255,255,0.07)" }}>
-                  {["Product","Category","Price","Change"].map((h, i) => (
-                    <th key={h} style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", fontWeight: 400, textAlign: i > 1 ? "right" : "left", padding: "10px 12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {prices.map(p => (
-                  <tr key={p.name} style={{ borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
-                    <td style={{ padding: "12px", fontSize: "12px", color: "white" }}>{p.name}</td>
-                    <td style={{ padding: "12px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>{p.cat}</td>
-                    <td style={{ padding: "12px", fontSize: "12px", color: "white", textAlign: "right" }}>{p.price}</td>
-                    <td style={{ padding: "12px", fontSize: "12px", color: p.up ? "#4ade80" : "#f87171", textAlign: "right" }}>{p.change}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* DOCUMENTS */}
-        {section === "documents" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Documents</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Your B/L, invoices, certificates and signed contracts.</p>
-            <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
-              {["All","Signed","Other"].map(f => (
-                <button key={f} onClick={() => setDocFilter(f)} style={{ padding: "6px 14px", fontSize: "11px", cursor: "pointer", borderRadius: "6px", color: docFilter === f ? "#4ade80" : "rgba(255,255,255,0.4)", background: docFilter === f ? "rgba(74,222,128,0.12)" : "transparent", border: docFilter === f ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)" }}>{f}</button>
-              ))}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {filteredDocs.map((d, i) => (
-                <div key={i} style={{ ...card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* NORMAL SECTIONS */}
+        {!selectedProductPage && (
+          <div style={{ padding: "32px 40px" }}>
+
+            {/* OVERVIEW */}
+            {section === "overview" && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                      <span style={{ color: "white", fontSize: "13px", fontWeight: 500 }}>{d.name}</span>
-                      {d.type === "signed" && <Badge status="signed" />}
+                    <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "12px", marginBottom: "4px" }}>Welcome back</div>
+                    <h1 style={{ color: "white", fontSize: "20px", fontWeight: 600, margin: 0 }}>{profile?.first_name ? `${profile.first_name} ${profile.last_name}` : user?.email}</h1>
+                    <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginTop: "2px" }}>{profile?.company} · {profile?.country}</div>
+                  </div>
+                  <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "rgba(74,222,128,0.12)", border: "0.5px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4ade80", fontSize: "12px", fontWeight: 600 }}>
+                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "12px", marginBottom: "28px" }}>
+                  {[["Active consolidations","3"],["Orders placed","7"],["Total volume","18 tons"],["Documents","5"]].map(([label, val]) => (
+                    <div key={label} style={card}>
+                      <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{label}</div>
+                      <div style={{ color: "white", fontSize: "22px", fontWeight: 600 }}>{val}</div>
                     </div>
-                    <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>{d.ref} · {d.date} · PDF</div>
-                  </div>
-                  <button style={{ background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px 14px", borderRadius: "6px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>Download</button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* NOTIFICATIONS */}
-        {section === "notifications" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Notifications</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Your latest alerts and updates.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {notifications.map((n, i) => (
-                <div key={i} style={{ ...card, display: "flex", gap: "14px", alignItems: "flex-start", borderColor: n.read ? "rgba(255,255,255,0.07)" : "rgba(74,222,128,0.15)" }}>
-                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: n.read ? "rgba(255,255,255,0.15)" : "#4ade80", flexShrink: 0, marginTop: "3px" }} />
-                  <div>
-                    <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "3px" }}>{n.title}</div>
-                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>{n.body}</div>
-                    <div style={{ color: "rgba(255,255,255,0.2)", fontSize: "11px", marginTop: "4px" }}>{n.time}</div>
-                  </div>
+                <div style={{ color: "white", fontSize: "14px", fontWeight: 500, marginBottom: "14px" }}>Your active consolidations</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {consolidations.filter(c => c.status !== "full").map(c => (
+                    <div key={c.id} style={{ ...card, display: "grid", gridTemplateColumns: "1fr auto", gap: "16px", alignItems: "center" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                          <span style={{ color: "white", fontSize: "13px", fontWeight: 500 }}>{c.product} · {c.port}</span>
+                          <Badge status={c.status} />
+                        </div>
+                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginBottom: "10px" }}>Departure {c.departure} · {c.price} · {c.daysLeft} days left</div>
+                        <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "4px", height: "4px", overflow: "hidden" }}>
+                          <div style={{ background: c.status === "closing" ? "#fb923c" : "#4ade80", height: "100%", width: `${Math.round(c.slots/c.total*100)}%`, borderRadius: "4px" }} />
+                        </div>
+                      </div>
+                      <button onClick={() => setSection("browse")} style={{ background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px 14px", borderRadius: "50px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>View</button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* SUPPORT */}
-        {section === "support" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Support</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Contact the Surco.trade team directly.</p>
-            <div style={{ ...card, maxWidth: "480px" }}>
-              <div style={{ marginBottom: "14px" }}><label style={lbl}>Subject</label><input style={inp} placeholder="e.g. Question about my order" /></div>
-              <div style={{ marginBottom: "20px" }}><label style={lbl}>Message</label><textarea style={{ ...inp, resize: "vertical", minHeight: "100px" } as React.CSSProperties} placeholder="Describe your question or issue..." /></div>
-              <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "11px 24px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Send message →</button>
-            </div>
-          </div>
-        )}
-
-        {/* PROFILE */}
-        {section === "profile" && (
-          <div>
-            <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>My profile</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Your company and contact information.</p>
-            <div style={{ ...card, maxWidth: "480px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-                {[
-                  ["Company", profile?.company || ""],
-                  ["Country", profile?.country || ""],
-                  ["First name", profile?.first_name || ""],
-                  ["Last name", profile?.last_name || ""],
-                  ["Email", user?.email || ""],
-                  ["WhatsApp", profile?.whatsapp || ""],
-                ].map(([label, val]) => (
-                  <div key={label}><label style={lbl}>{label}</label><input style={inp} defaultValue={val} /></div>
-                ))}
               </div>
-              <div style={{ marginTop: "14px" }}>
-                <label style={lbl}>Destination port</label>
-                <input style={inp} defaultValue={profile?.port || ""} />
+            )}
+
+            {/* BROWSE */}
+            {section === "browse" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Browse consolidations</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Available consolidations matching your preferences.</p>
+                <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+                  {["All","Seafood","Fruits"].map(f => (
+                    <button key={f} onClick={() => setBrowseFilter(f)} style={{ padding: "6px 14px", fontSize: "11px", cursor: "pointer", borderRadius: "6px", color: browseFilter === f ? "#4ade80" : "rgba(255,255,255,0.4)", background: browseFilter === f ? "rgba(74,222,128,0.12)" : "transparent", border: browseFilter === f ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)" }}>{f}</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {filteredBrowse.map(c => (
+                    <div key={c.id} style={{ ...card, display: "grid", gridTemplateColumns: "1fr auto", gap: "20px", alignItems: "center", opacity: c.status === "full" ? 0.5 : 1 }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                          <span style={{ color: "white", fontSize: "13px", fontWeight: 500 }}>{c.product} · {c.port}</span>
+                          <Badge status={c.status} />
+                        </div>
+                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginBottom: "10px" }}>Departure {c.departure} · FOB Guayaquil · {c.price} · {c.daysLeft > 0 ? `${c.daysLeft} days left` : "Closed"}</div>
+                        <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "4px", height: "4px", overflow: "hidden" }}>
+                          <div style={{ background: c.status === "full" ? "#f87171" : c.status === "closing" ? "#fb923c" : "#4ade80", height: "100%", width: `${Math.round(c.slots/c.total*100)}%`, borderRadius: "4px" }} />
+                        </div>
+                        <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginTop: "5px" }}>{c.slots} / {c.total} slots filled</div>
+                      </div>
+                      <button disabled={c.status === "full"} style={{ background: c.status === "full" ? "rgba(255,255,255,0.06)" : "#4ade80", color: c.status === "full" ? "rgba(255,255,255,0.25)" : "#071a0e", fontSize: "12px", fontWeight: 600, padding: "9px 18px", borderRadius: "50px", border: c.status === "full" ? "0.5px solid rgba(255,255,255,0.08)" : "none", cursor: c.status === "full" ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+                        {c.status === "full" ? "Full" : "Join →"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <button style={{ marginTop: "20px", background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "11px 24px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Save changes</button>
-            </div>
+            )}
+
+            {/* ORDERS */}
+            {section === "orders" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>My orders</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Consolidations you have joined.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {orders.map(o => (
+                    <div key={o.id} style={card}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
+                        <div>
+                          <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>{o.product} · {o.port}</div>
+                          <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>{o.id} · {o.tons} tons · {o.value}</div>
+                        </div>
+                        <Badge status={o.status} />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "12px", paddingTop: "12px", borderTop: "0.5px solid rgba(255,255,255,0.06)", flexWrap: "wrap" as const }}>
+                        <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>Departed {o.date}</span>
+                        {o.eta && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>ETA {o.eta}</span>}
+                        <span style={{ display: "inline-block", fontSize: "10px", padding: "2px 8px", borderRadius: "4px", background: "rgba(74,222,128,0.12)", color: "#4ade80", border: "0.5px solid rgba(74,222,128,0.3)" }}>Signed {o.signed}</span>
+                        <button onClick={() => setSection("documents")} style={{ marginLeft: "auto", background: "transparent", color: "#4ade80", fontSize: "11px", border: "none", cursor: "pointer" }}>View contract →</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* PRODUCTS */}
+            {section === "products" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Products</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Select a product to view verified producers.</p>
+                <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+                  {["All","Seafood","Fruits","Agro"].map(f => (
+                    <button key={f} onClick={() => setProdFilter(f)} style={{ padding: "6px 14px", fontSize: "11px", cursor: "pointer", borderRadius: "6px", color: prodFilter === f ? "#4ade80" : "rgba(255,255,255,0.4)", background: prodFilter === f ? "rgba(74,222,128,0.12)" : "transparent", border: prodFilter === f ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)" }}>{f}</button>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px" }}>
+                  {filteredProducts.map(p => (
+                    <div key={p.name} style={card}>
+                      <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{p.cat}</div>
+                      <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>{p.name}</div>
+                      <div style={{ color: "#4ade80", fontSize: "13px", marginBottom: "4px" }}>{p.price}</div>
+                      <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginBottom: "12px" }}>{p.season}</div>
+                      <button onClick={() => {
+                        setSelectedProductPage(p.name);
+                        setSelectedCerts([]);
+                        setSelectedProcesses([]);
+                        setSelectedRegions([]);
+                        setMaxPrice(8);
+                        setMaxVolume(50);
+                      }} style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "6px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>
+                        View producers →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* PRICES */}
+            {section === "prices" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Live prices</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Current export prices from Ecuador.</p>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "0.5px solid rgba(255,255,255,0.07)" }}>
+                      {["Product","Category","Price","Change"].map((h, i) => (
+                        <th key={h} style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", fontWeight: 400, textAlign: i > 1 ? "right" : "left", padding: "10px 12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prices.map(p => (
+                      <tr key={p.name} style={{ borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
+                        <td style={{ padding: "12px", fontSize: "12px", color: "white" }}>{p.name}</td>
+                        <td style={{ padding: "12px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>{p.cat}</td>
+                        <td style={{ padding: "12px", fontSize: "12px", color: "white", textAlign: "right" }}>{p.price}</td>
+                        <td style={{ padding: "12px", fontSize: "12px", color: p.up ? "#4ade80" : "#f87171", textAlign: "right" }}>{p.change}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* DOCUMENTS */}
+            {section === "documents" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Documents</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Your B/L, invoices, certificates and signed contracts.</p>
+                <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+                  {["All","Signed","Other"].map(f => (
+                    <button key={f} onClick={() => setDocFilter(f)} style={{ padding: "6px 14px", fontSize: "11px", cursor: "pointer", borderRadius: "6px", color: docFilter === f ? "#4ade80" : "rgba(255,255,255,0.4)", background: docFilter === f ? "rgba(74,222,128,0.12)" : "transparent", border: docFilter === f ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)" }}>{f}</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {filteredDocs.map((d, i) => (
+                    <div key={i} style={{ ...card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
+                          <span style={{ color: "white", fontSize: "13px", fontWeight: 500 }}>{d.name}</span>
+                          {d.type === "signed" && <Badge status="signed" />}
+                        </div>
+                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>{d.ref} · {d.date} · PDF</div>
+                      </div>
+                      <button style={{ background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px 14px", borderRadius: "6px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>Download</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* NOTIFICATIONS */}
+            {section === "notifications" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Notifications</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Your latest alerts and updates.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {notifications.map((n, i) => (
+                    <div key={i} style={{ ...card, display: "flex", gap: "14px", alignItems: "flex-start", borderColor: n.read ? "rgba(255,255,255,0.07)" : "rgba(74,222,128,0.15)" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: n.read ? "rgba(255,255,255,0.15)" : "#4ade80", flexShrink: 0, marginTop: "3px" }} />
+                      <div>
+                        <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "3px" }}>{n.title}</div>
+                        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>{n.body}</div>
+                        <div style={{ color: "rgba(255,255,255,0.2)", fontSize: "11px", marginTop: "4px" }}>{n.time}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SUPPORT */}
+            {section === "support" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Support</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Contact the Surco.trade team directly.</p>
+                <div style={{ ...card, maxWidth: "480px" }}>
+                  <div style={{ marginBottom: "14px" }}><label style={lbl}>Subject</label><input style={inp} placeholder="e.g. Question about my order" /></div>
+                  <div style={{ marginBottom: "20px" }}><label style={lbl}>Message</label><textarea style={{ ...inp, resize: "vertical", minHeight: "100px" } as React.CSSProperties} placeholder="Describe your question or issue..." /></div>
+                  <button style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "11px 24px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Send message →</button>
+                </div>
+              </div>
+            )}
+
+            {/* PROFILE */}
+            {section === "profile" && (
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>My profile</h2>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px", marginBottom: "20px" }}>Your company and contact information.</p>
+                <div style={{ ...card, maxWidth: "480px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                    {[["Company", profile?.company || ""],["Country", profile?.country || ""],["First name", profile?.first_name || ""],["Last name", profile?.last_name || ""],["Email", user?.email || ""],["WhatsApp", profile?.whatsapp || ""]].map(([label, val]) => (
+                      <div key={label}><label style={lbl}>{label}</label><input style={inp} defaultValue={val} /></div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: "14px" }}>
+                    <label style={lbl}>Destination port</label>
+                    <input style={inp} defaultValue={profile?.port || ""} />
+                  </div>
+                  <button style={{ marginTop: "20px", background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "11px 24px", borderRadius: "50px", border: "none", cursor: "pointer" }}>Save changes</button>
+                </div>
+              </div>
+            )}
+
           </div>
         )}
-
       </div>
     </div>
   );
