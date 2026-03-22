@@ -108,10 +108,14 @@ const toggleFavorite = (producer: any) => {
   };
 
   const saveConfig = (config: any) => {
-    const newFav = { ...config.producer, config, id: `${config.producer.id}-config` };
-    const updated = [...favorites.filter((f: any) => f.id !== newFav.id), newFav];
-    setFavorites(updated);
-    localStorage.setItem("surco_favorites", JSON.stringify(updated));
+    const fixedId = `fav-${config.producer.id}`;
+    const newFav = { ...config.producer, config, id: fixedId };
+    setFavorites(prev => {
+      const updated = [...prev.filter((f: any) => f.id !== fixedId), newFav];
+      localStorage.setItem("surco_favorites", JSON.stringify(updated));
+      return updated;
+    });
+    setIsDirty(false);
   };
 
   const isFavorite = (producer: any) => favorites.some((f: any) => f.id === producer.id);
@@ -144,7 +148,7 @@ const toggleFavorite = (producer: any) => {
 
   const handleNavigate = (fn: () => void) => {
     if (selectedProducer?.config && isDirty) {
-      setPendingNavigation(() => () => fn());
+      setPendingNavigation(() => fn);
       setShowUnsavedPopup(true);
     } else {
       fn();
