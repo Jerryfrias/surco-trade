@@ -55,10 +55,10 @@ export default function Home() {
             <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>English</span>
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>▾</span>
           </div>
-          <button style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
+          <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
   Sign in
 </button>
-<button style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
+<button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
   Create account
 </button>
         </div>
