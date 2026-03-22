@@ -80,7 +80,6 @@ export default function MyAccountPage() {
   const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [currentConfig, setCurrentConfig] = useState<any>(null);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
@@ -108,14 +107,10 @@ const toggleFavorite = (producer: any) => {
   };
 
   const saveConfig = (config: any) => {
-    const fixedId = `fav-${config.producer.id}`;
-    const newFav = { ...config.producer, config, id: fixedId };
-    setFavorites(prev => {
-      const updated = [...prev.filter((f: any) => f.id !== fixedId), newFav];
-      localStorage.setItem("surco_favorites", JSON.stringify(updated));
-      return updated;
-    });
-    setIsDirty(false);
+    const newFav = { ...config.producer, config, id: `${config.producer.id}-config` };
+    const updated = [...favorites.filter((f: any) => f.id !== newFav.id), newFav];
+    setFavorites(updated);
+    localStorage.setItem("surco_favorites", JSON.stringify(updated));
   };
 
   const isFavorite = (producer: any) => favorites.some((f: any) => f.id === producer.id);
@@ -148,7 +143,7 @@ const toggleFavorite = (producer: any) => {
 
   const handleNavigate = (fn: () => void) => {
     if (selectedProducer?.config && isDirty) {
-      setPendingNavigation(() => fn);
+      setPendingNavigation(() => () => fn());
       setShowUnsavedPopup(true);
     } else {
       fn();
@@ -196,7 +191,7 @@ const toggleFavorite = (producer: any) => {
   const hasFilters = selCerts.length > 0 || selProcesses.length > 0 || selCountries.length > 0 || selHarvest.length > 0;
 
   const ProducerCard = ({ p }: { p: any }) => (
-    <div key={p.id} onClick={() => { setSelectedProducer(p); setIsDirty(false); updateURL("products", selectedProductPage, p.id); }} style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", overflow:"hidden", cursor:"pointer", position:"relative" }}
+    <div key={p.id} onClick={() => { setSelectedProducer(p); updateURL("products", selectedProductPage, p.id); }} style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", overflow:"hidden", cursor:"pointer", position:"relative" }}
       onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(74,222,128,0.25)")}
       onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}>
       <div style={{ height:"100px", background:"#0a2414", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
@@ -279,7 +274,10 @@ const toggleFavorite = (producer: any) => {
               <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", marginBottom:"24px", lineHeight:1.6 }}>{t("You have unsaved changes to this configuration.","Tienes cambios sin guardar en esta configuración.")}</div>
               <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
                 <button onClick={() => {
-                  if (currentConfig) saveConfig(currentConfig);
+                  if (selectedProducer) {
+                    const config = { producer: selectedProducer, talla: selectedProducer.config?.talla, presentacion: selectedProducer.config?.presentacion, proceso: selectedProducer.config?.proceso, packaging: selectedProducer.config?.packaging, action: selectedProducer.config?.action || "container", qty: selectedProducer.config?.qty || 1, totalEstimado: selectedProducer.config?.totalEstimado || 0, savedAt: new Date().toISOString() };
+                    saveConfig(config);
+                  }
                   setShowUnsavedPopup(false);
                   setIsDirty(false);
                   if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
@@ -310,8 +308,7 @@ const toggleFavorite = (producer: any) => {
             onBack={() => handleNavigate(() => { setSelectedProducer(null); updateURL("products", selectedProductPage); })}
             isFavorite={isFavorite(selectedProducer)}
             onToggleFavorite={() => toggleFavorite(selectedProducer)}
-            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); setCurrentConfig(config); }}
-            onConfigChange={(config) => { setCurrentConfig(config); }}
+            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); }}
             onDirty={() => setIsDirty(true)}
             lang={lang}
           />
@@ -509,7 +506,7 @@ const toggleFavorite = (producer: any) => {
                         <span style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{t("Estimated total","Total estimado")}</span>
                         <span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${f.config.totalEstimado?.toLocaleString()}</span>
                       </div>
-                      <button onClick={() => { setSelectedProducer(f); setIsDirty(false); setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                      <button onClick={() => { setSelectedProducer(f); setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
                     </div>
                   ) : <ProducerCard key={f.id} p={f} />)}
                   </div>

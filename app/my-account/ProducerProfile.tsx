@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ALL_PRES, ALL_PROC, ALL_PACK } from "./data";
 
@@ -14,14 +14,13 @@ const Opt = ({ label, sub, available, selected, onToggle }: any) => (
   </div>
 );
 
-export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, onSaveConfig, onDirty, onConfigChange, lang }: {
+export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, onSaveConfig, onDirty, lang }: {
   producer: any,
   onBack: () => void,
   isFavorite: boolean,
   onToggleFavorite: () => void,
   onSaveConfig: (config: any) => void,
   onDirty: () => void,
-  onConfigChange: (config: any) => void,
   lang: string
 }) {
   const t = (en: string, es: string) => lang === "EN" ? en : es;
@@ -50,22 +49,6 @@ const [selectedTalla, setSelectedTalla] = useState(
   const subtotal = TONS * (selectedTalla?.precio || 0) * qty;
   const freight = FREIGHT * qty;
   const total = subtotal + freight;
-
-  useEffect(() => {
-    if (producer.config) {
-      onConfigChange({
-        producer,
-        talla: selectedTalla,
-        presentacion: selectedPres,
-        proceso: selectedProc,
-        packaging: selectedPack,
-        action,
-        qty,
-        totalEstimado: TONS * (selectedTalla?.precio || 0) * qty + FREIGHT * qty,
-        savedAt: new Date().toISOString(),
-      });
-    }
-  }, [selectedTalla, selectedPres, selectedProc, selectedPack, action, qty, onConfigChange]);
 
   const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
     if (producer.config) onDirty();
