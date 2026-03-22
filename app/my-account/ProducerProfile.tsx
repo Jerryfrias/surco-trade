@@ -24,12 +24,21 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
 }) {
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
-  const [selectedTalla, setSelectedTalla] = useState(producer.tallas?.find((t: any) => t.precio) || producer.tallas?.[0]);
-  const [selectedPres, setSelectedPres] = useState<string[]>([producer.presentaciones?.[0]].filter(Boolean));
-  const [selectedProc, setSelectedProc] = useState<string[]>([producer.procesos?.[0]].filter(Boolean));
-  const [selectedPack, setSelectedPack] = useState<string[]>([producer.packaging?.[1] || producer.packaging?.[0]].filter(Boolean));
-  const [action, setAction] = useState<"container"|"consol">("container");
+const [selectedTalla, setSelectedTalla] = useState(
+    producer.config?.talla || producer.tallas?.find((t: any) => t.precio) || producer.tallas?.[0]
+  );
+  const [selectedPres, setSelectedPres] = useState<string[]>(
+    producer.config?.presentacion || [producer.presentaciones?.[0]].filter(Boolean)
+  );
+  const [selectedProc, setSelectedProc] = useState<string[]>(
+    producer.config?.proceso || [producer.procesos?.[0]].filter(Boolean)
+  );
+  const [selectedPack, setSelectedPack] = useState<string[]>(
+    producer.config?.packaging || [producer.packaging?.[1] || producer.packaging?.[0]].filter(Boolean)
+  );
+  const [action, setAction] = useState<"container"|"consol">(producer.config?.action || "container");
   const [qty, setQty] = useState(producer.config?.qty || 1);
+  const isFromFavorite = !!producer.config;
   const [note, setNote] = useState("");
   const [noteSent, setNoteSent] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -269,7 +278,11 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
         <div style={{ borderTop:"0.5px solid rgba(255,255,255,0.07)", paddingTop:"14px", display:"flex", justifyContent:"center" }}>
           <button onClick={handleSaveConfig} style={{ display:"flex", alignItems:"center", gap:"8px", background: saved ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: saved ? "#4ade80" : "rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, padding:"10px 20px", borderRadius:"50px", border: saved ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)", cursor:"pointer", transition:"all 0.2s" }}>
             <span style={{ fontSize:"16px" }}>{saved ? "★" : "☆"}</span>
-            {saved ? t("Saved to favorites!","¡Guardado en favoritos!") : t("Save this configuration to favorites","Guardar esta configuración en favoritos")}
+            {saved 
+    ? t("Saved!","¡Guardado!") 
+    : isFromFavorite 
+      ? t("Update favorite","Actualizar favorito") 
+      : t("Save this configuration to favorites","Guardar esta configuración en favoritos")}
           </button>
         </div>
       </div>
