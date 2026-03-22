@@ -143,7 +143,7 @@ const toggleFavorite = (producer: any) => {
 
   const handleNavigate = (fn: () => void) => {
     if (selectedProducer?.config && isDirty) {
-      setPendingNavigation(() => fn);
+      setPendingNavigation(() => () => fn());
       setShowUnsavedPopup(true);
     } else {
       fn();
@@ -271,21 +271,30 @@ const toggleFavorite = (producer: any) => {
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <div style={{ background:"#0a2414", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", padding:"28px 32px", maxWidth:"380px", width:"90%" }}>
               <div style={{ color:"white", fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>{t("Unsaved changes","Cambios sin guardar")}</div>
-              <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", marginBottom:"24px", lineHeight:1.6 }}>{t("You have unsaved changes to this configuration. Do you want to save before leaving?","Tienes cambios sin guardar en esta configuración. ¿Quieres guardar antes de salir?")}</div>
-              <div style={{ display:"flex", gap:"10px" }}>
+              <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", marginBottom:"24px", lineHeight:1.6 }}>{t("You have unsaved changes to this configuration.","Tienes cambios sin guardar en esta configuración.")}</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
                 <button onClick={() => {
+                  if (selectedProducer) {
+                    const config = { producer: selectedProducer, talla: selectedProducer.config?.talla, presentacion: selectedProducer.config?.presentacion, proceso: selectedProducer.config?.proceso, packaging: selectedProducer.config?.packaging, action: selectedProducer.config?.action || "container", qty: selectedProducer.config?.qty || 1, totalEstimado: selectedProducer.config?.totalEstimado || 0, savedAt: new Date().toISOString() };
+                    saveConfig(config);
+                  }
                   setShowUnsavedPopup(false);
                   setIsDirty(false);
                   if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
-                }} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", fontWeight:500, padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>
-                  {t("Don't save","No guardar")}
+                }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>
+                  {t("Save and leave","Guardar y salir")}
+                </button>
+                <button onClick={() => {
+                  setShowUnsavedPopup(false);
+                }} style={{ width:"100%", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", fontWeight:500, padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>
+                  {t("Keep editing","Seguir editando")}
                 </button>
                 <button onClick={() => {
                   setShowUnsavedPopup(false);
                   setIsDirty(false);
-                  setPendingNavigation(null);
-                }} style={{ flex:1, background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>
-                  {t("Keep editing","Seguir editando")}
+                  if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
+                }} style={{ width:"100%", background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"12px", padding:"8px", border:"none", cursor:"pointer" }}>
+                  {t("Leave without saving","Salir sin guardar")}
                 </button>
               </div>
             </div>
