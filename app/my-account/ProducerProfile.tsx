@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { ALL_PRES, ALL_PROC, ALL_PACK } from "./data";
 
@@ -41,6 +41,21 @@ const [selectedTalla, setSelectedTalla] = useState(
   const [action, setAction] = useState<"container"|"consol">(producer.config?.action || "container");
   const [qty, setQty] = useState(producer.config?.qty || 1);
   const isFromFavorite = !!producer.config;
+  useEffect(() => {
+    if (producer.config && onConfigChange) {
+      onConfigChange({
+        producer,
+        talla: selectedTalla,
+        presentacion: selectedPres,
+        proceso: selectedProc,
+        packaging: selectedPack,
+        action,
+        qty,
+        totalEstimado: TONS * (selectedTalla?.precio || 0) * qty + FREIGHT * qty,
+        savedAt: new Date().toISOString(),
+      });
+    }
+  }, [selectedTalla, selectedPres, selectedProc, selectedPack, action, qty]);
   const [note, setNote] = useState("");
   const [noteSent, setNoteSent] = useState(false);
   const [saved, setSaved] = useState(false);
