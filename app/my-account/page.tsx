@@ -96,9 +96,15 @@ export default function MyAccountPage() {
     window.history.replaceState(null, "", `/my-account?${params.toString()}`);
   };
 
-  const toggleFavorite = (producer: any) => {
-    const exists = favorites.find((f: any) => f.id === producer.id);
-    const updated = exists ? favorites.filter((f: any) => f.id !== producer.id) : [...favorites, producer];
+const toggleFavorite = (producer: any) => {
+    const exists = favorites.find((f: any) => f.id === producer.id && !f.config);
+    const updated = exists ? favorites.filter((f: any) => !(f.id === producer.id && !f.config)) : [...favorites, producer];
+    setFavorites(updated);
+    localStorage.setItem("surco_favorites", JSON.stringify(updated));
+  };
+
+  const saveConfig = (config: any) => {
+    const updated = [...favorites.filter((f: any) => !(f.producer?.id === config.producer.id && f.config)), { ...config.producer, config, id: `${config.producer.id}-config-${Date.now()}` }];
     setFavorites(updated);
     localStorage.setItem("surco_favorites", JSON.stringify(updated));
   };
@@ -255,6 +261,7 @@ export default function MyAccountPage() {
             onBack={() => { setSelectedProducer(null); updateURL("products", selectedProductPage); }}
             isFavorite={isFavorite(selectedProducer)}
             onToggleFavorite={() => toggleFavorite(selectedProducer)}
+            onSaveConfig={saveConfig}
             lang={lang}
           />
         )}
@@ -432,7 +439,28 @@ export default function MyAccountPage() {
                   </div>
                 ) : (
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"16px" }}>
-                    {favorites.map(p => <ProducerCard key={p.id} p={p} />)}
+                   {favorites.map((f: any) => f.config ? (
+                    <div key={f.id} style={card}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"12px" }}>
+                        <div>
+                          <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"3px" }}>{f.nombre}</div>
+                          <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"11px" }}>{f.region}, {f.country}</div>
+                        </div>
+                        <div onClick={() => { setFavorites(prev => { const u = prev.filter((x: any) => x.id !== f.id); localStorage.setItem("surco_favorites", JSON.stringify(u)); return u; }); }} style={{ cursor:"pointer", color:"#facc15", fontSize:"18px" }}>★</div>
+                      </div>
+                      <div style={{ display:"flex", flexWrap:"wrap" as const, gap:"6px", marginBottom:"12px" }}>
+                        <span style={{ background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{f.config.talla?.label} · ${f.config.talla?.precio}/kg</span>
+                        {f.config.presentacion?.map((p: string) => <span key={p} style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{p}</span>)}
+                        {f.config.proceso?.map((p: string) => <span key={p} style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{p}</span>)}
+                        <span style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>{f.config.action === "container" ? `${f.config.qty} container${f.config.qty > 1 ? "s" : ""}` : "Consolidation"}</span>
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(74,222,128,0.06)", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.15)", marginBottom:"12px" }}>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{t("Estimated total","Total estimado")}</span>
+                        <span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${f.config.totalEstimado?.toLocaleString()}</span>
+                      </div>
+                      <button onClick={() => { setSelectedProducer(f); setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                    </div>
+                  ) : <ProducerCard key={f.id} p={f} />)}
                   </div>
                 )}
               </div>
