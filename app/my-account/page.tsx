@@ -80,6 +80,12 @@ export default function MyAccountPage() {
   const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [ports, setPorts] = useState<string[]>([]);
+const [productInterests, setProductInterests] = useState<string[]>([]);
+const [newPort, setNewPort] = useState("");
+const [newProduct, setNewProduct] = useState("");
+const [addingPort, setAddingPort] = useState(false);
+const [addingProduct, setAddingProduct] = useState(false);
   const currentConfigRef = useRef<any>(null);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
@@ -654,7 +660,14 @@ export default function MyAccountPage() {
                       {(profile?.ports || [profile?.port]).filter(Boolean).map((p: string) => (
                         <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
                       ))}
-                      <button style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add port","Agregar puerto")}</button>
+                      {addingPort ? (
+                        <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
+                          <input autoFocus value={newPort} onChange={e => setNewPort(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newPort.trim()) { setPorts([...ports, newPort.trim()]); setNewPort(""); setAddingPort(false); } if (e.key === "Escape") { setAddingPort(false); setNewPort(""); } }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", width:"140px" }} placeholder="e.g. Rotterdam" />
+                          <span onClick={() => { if (newPort.trim()) { setPorts([...ports, newPort.trim()]); setNewPort(""); } setAddingPort(false); }} style={{ color:"#4ade80", cursor:"pointer", fontSize:"12px" }}>✓</span>
+                        </span>
+                      ) : (
+                        <button onClick={() => setAddingPort(true)} style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add port","Agregar puerto")}</button>
+                      )}
                     </div>
                   </div>
                   <div style={{ marginBottom:"16px" }}>
@@ -663,7 +676,14 @@ export default function MyAccountPage() {
                       {(profile?.products || []).map((p: string) => (
                         <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", border:"0.5px solid rgba(255,255,255,0.1)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
                       ))}
-                      <button style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add product","Agregar producto")}</button>
+                      {addingProduct ? (
+                        <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
+                          <input autoFocus value={newProduct} onChange={e => setNewProduct(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newProduct.trim()) { setProductInterests([...productInterests, newProduct.trim()]); setNewProduct(""); setAddingProduct(false); } if (e.key === "Escape") { setAddingProduct(false); setNewProduct(""); } }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", width:"140px" }} placeholder="e.g. Vannamei Shrimp" />
+                          <span onClick={() => { if (newProduct.trim()) { setProductInterests([...productInterests, newProduct.trim()]); setNewProduct(""); } setAddingProduct(false); }} style={{ color:"#4ade80", cursor:"pointer", fontSize:"12px" }}>✓</span>
+                        </span>
+                      ) : (
+                        <button onClick={() => setAddingProduct(true)} style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add product","Agregar producto")}</button>
+                      )}
                     </div>
                   </div>
                   <div>
