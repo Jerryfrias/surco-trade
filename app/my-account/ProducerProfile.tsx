@@ -14,12 +14,13 @@ const Opt = ({ label, sub, available, selected, onToggle }: any) => (
   </div>
 );
 
-export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, onSaveConfig, lang }: {
+export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, onSaveConfig, onDirty, lang }: {
   producer: any,
   onBack: () => void,
   isFavorite: boolean,
   onToggleFavorite: () => void,
   onSaveConfig: (config: any) => void,
+  onDirty: () => void,
   lang: string
 }) {
   const t = (en: string, es: string) => lang === "EN" ? en : es;
@@ -50,6 +51,7 @@ const [selectedTalla, setSelectedTalla] = useState(
   const total = subtotal + freight;
 
   const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
+    if (producer.config) onDirty();
     set(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
   };
 
@@ -114,7 +116,7 @@ const [selectedTalla, setSelectedTalla] = useState(
             <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, marginBottom:"8px" }}>{t("Size & price / kg","Talla & precio / kg")}</div>
             <div>
               {producer.tallas?.map((t: any) => (
-                <div key={t.label} onClick={() => t.precio && setSelectedTalla(t)} style={{ display:"inline-flex", flexDirection:"column", alignItems:"center", padding:"10px 14px", borderRadius:"8px", cursor: t.precio ? "pointer" : "not-allowed", margin:"3px", minWidth:"68px", border: selectedTalla?.label === t.label ? "2px solid #4ade80" : "1.5px solid rgba(255,255,255,0.1)", background: selectedTalla?.label === t.label ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.03)", opacity: t.precio ? 1 : 0.25 }}>
+                <div key={t.label} onClick={() => { if (t.precio) { if (producer.config) onDirty(); setSelectedTalla(t); } }} style={{ display:"inline-flex", flexDirection:"column", alignItems:"center", padding:"10px 14px", borderRadius:"8px", cursor: t.precio ? "pointer" : "not-allowed", margin:"3px", minWidth:"68px", border: selectedTalla?.label === t.label ? "2px solid #4ade80" : "1.5px solid rgba(255,255,255,0.1)", background: selectedTalla?.label === t.label ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.03)", opacity: t.precio ? 1 : 0.25 }}>
                   <span style={{ fontSize:"13px", fontWeight:600, color: selectedTalla?.label === t.label ? "#4ade80" : "rgba(255,255,255,0.4)" }}>{t.label}</span>
                   <span style={{ fontSize:"10px", color: selectedTalla?.label === t.label ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.25)", marginTop:"2px" }}>{t.precio ? `$${t.precio}/kg` : "N/A"}</span>
                 </div>
@@ -223,9 +225,9 @@ const [selectedTalla, setSelectedTalla] = useState(
                 <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"11px" }}>{producer.nombre}</div>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
-                <div onClick={() => setQty(Math.max(1,qty-1))} style={{ width:"32px", height:"32px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"18px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
+                <div onClick={() => { if (producer.config) onDirty(); setQty(Math.max(1,qty-1)); }} style={{ width:"32px", height:"32px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"18px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
                 <div style={{ color:"white", fontSize:"18px", fontWeight:600, minWidth:"24px", textAlign:"center" }}>{qty}</div>
-                <div onClick={() => setQty(qty+1)} style={{ width:"32px", height:"32px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"18px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
+                <div onClick={() => { if (producer.config) onDirty(); setQty(qty+1); }} style={{ width:"32px", height:"32px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"18px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
               </div>
             </div>
             <div style={{ borderTop:"0.5px solid rgba(255,255,255,0.07)", paddingTop:"14px" }}>

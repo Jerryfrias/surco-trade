@@ -77,6 +77,9 @@ export default function MyAccountPage() {
     if (typeof window === "undefined") return "EN";
     return (localStorage.getItem("surco_lang") as "EN"|"ES") || "EN";
   });
+  const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
@@ -104,7 +107,8 @@ const toggleFavorite = (producer: any) => {
   };
 
   const saveConfig = (config: any) => {
-    const updated = [...favorites.filter((f: any) => !(f.producer?.id === config.producer.id && f.config)), { ...config.producer, config, id: `${config.producer.id}-config-${Date.now()}` }];
+    const newFav = { ...config.producer, config, id: `${config.producer.id}-config` };
+    const updated = [...favorites.filter((f: any) => f.id !== newFav.id), newFav];
     setFavorites(updated);
     localStorage.setItem("surco_favorites", JSON.stringify(updated));
   };
@@ -137,10 +141,19 @@ const toggleFavorite = (producer: any) => {
     return <span style={{ display:"inline-block", fontSize:"10px", padding:"3px 8px", borderRadius:"4px", background:s.bg, color:s.color, border:`0.5px solid ${s.border}` }}>{s.label}</span>;
   };
 
+  const handleNavigate = (fn: () => void) => {
+    if (selectedProducer?.config && isDirty) {
+      setPendingNavigation(() => fn);
+      setShowUnsavedPopup(true);
+    } else {
+      fn();
+    }
+  };
+
   const SideItem = ({ id, label, icon, badge }: { id: Section, label: string, icon: React.ReactNode, badge?: number }) => {
     const isActive = section === id && !selectedProductPage && !selectedProducer;
     return (
-      <div onClick={() => { setSection(id); setSelectedProductPage(null); setSelectedProducer(null); updateURL(id); }} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize:"13px", cursor:"pointer", borderLeft:`2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition:"all 0.15s" }}>
+      <div onClick={() => handleNavigate(() => { setSection(id); setSelectedProductPage(null); setSelectedProducer(null); updateURL(id); })} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize:"13px", cursor:"pointer", borderLeft:`2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition:"all 0.15s" }}>
         {icon}
         {label}
         {badge ? <span style={{ marginLeft:"auto", background:"rgba(74,222,128,0.15)", color:"#4ade80", fontSize:"10px", padding:"1px 6px", borderRadius:"10px", border:"0.5px solid rgba(74,222,128,0.3)" }}>{badge}</span> : null}
@@ -254,14 +267,40 @@ const toggleFavorite = (producer: any) => {
       {/* CONTENT */}
       <div style={{ overflowY:"auto" }}>
 
+        {showUnsavedPopup && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <div style={{ background:"#0a2414", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", padding:"28px 32px", maxWidth:"380px", width:"90%" }}>
+              <div style={{ color:"white", fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>{t("Unsaved changes","Cambios sin guardar")}</div>
+              <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", marginBottom:"24px", lineHeight:1.6 }}>{t("You have unsaved changes to this configuration. Do you want to save before leaving?","Tienes cambios sin guardar en esta configuración. ¿Quieres guardar antes de salir?")}</div>
+              <div style={{ display:"flex", gap:"10px" }}>
+                <button onClick={() => {
+                  setShowUnsavedPopup(false);
+                  setIsDirty(false);
+                  if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
+                }} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", fontWeight:500, padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>
+                  {t("Don't save","No guardar")}
+                </button>
+                <button onClick={() => {
+                  setShowUnsavedPopup(false);
+                  setIsDirty(false);
+                  setPendingNavigation(null);
+                }} style={{ flex:1, background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>
+                  {t("Keep editing","Seguir editando")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* PRODUCER PROFILE */}
         {selectedProducer && (
           <ProducerProfile
             producer={selectedProducer}
-            onBack={() => { setSelectedProducer(null); updateURL("products", selectedProductPage); }}
+            onBack={() => handleNavigate(() => { setSelectedProducer(null); updateURL("products", selectedProductPage); })}
             isFavorite={isFavorite(selectedProducer)}
             onToggleFavorite={() => toggleFavorite(selectedProducer)}
-            onSaveConfig={saveConfig}
+            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); }}
+            onDirty={() => setIsDirty(true)}
             lang={lang}
           />
         )}
