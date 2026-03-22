@@ -14,7 +14,7 @@ const Opt = ({ label, sub, available, selected, onToggle }: any) => (
   </div>
 );
 
-export default function ProducerProfile({ producer, onBack }: { producer: any, onBack: () => void }) {
+export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, lang }: { producer: any, onBack: () => void, isFavorite: boolean, onToggleFavorite: () => void, lang: string }) {
   const [selectedTalla, setSelectedTalla] = useState(producer.tallas?.find((t: any) => t.precio) || producer.tallas?.[0]);
   const [selectedPres, setSelectedPres] = useState<string[]>([producer.presentaciones?.[0]].filter(Boolean));
   const [selectedProc, setSelectedProc] = useState<string[]>([producer.procesos?.[0]].filter(Boolean));
@@ -55,6 +55,9 @@ export default function ProducerProfile({ producer, onBack }: { producer: any, o
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"8px" }}>
               <h1 style={{ fontSize:"20px", fontWeight:600 }}>{producer.nombre}</h1>
+              <div onClick={onToggleFavorite} style={{ cursor:"pointer", fontSize:"22px", color: isFavorite ? "#facc15" : "rgba(255,255,255,0.3)", marginLeft:"8px" }} title={isFavorite ? "Remove from favorites" : "Add to favorites"}>
+                {isFavorite ? "★" : "☆"}
+              </div>
               <span style={{ background:"rgba(74,222,128,0.15)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.3)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>Verified</span>
             </div>
             <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", marginBottom:"10px" }}>Vannamei Shrimp · {producer.region}, {producer.country} · {producer.anos_experiencia} years</div>
