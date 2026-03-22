@@ -29,7 +29,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   const [selectedProc, setSelectedProc] = useState<string[]>([producer.procesos?.[0]].filter(Boolean));
   const [selectedPack, setSelectedPack] = useState<string[]>([producer.packaging?.[1] || producer.packaging?.[0]].filter(Boolean));
   const [action, setAction] = useState<"container"|"consol">("container");
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(producer.config?.qty || 1);
   const [note, setNote] = useState("");
   const [noteSent, setNoteSent] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -83,9 +83,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
             <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"8px" }}>
               <h1 style={{ fontSize:"20px", fontWeight:600 }}>{producer.nombre}</h1>
               <span style={{ background:"rgba(74,222,128,0.15)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.3)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>Verified</span>
-              <div onClick={onToggleFavorite} style={{ cursor:"pointer", fontSize:"20px", color: isFavorite ? "#facc15" : "rgba(255,255,255,0.3)", marginLeft:"4px" }}>
-                {isFavorite ? "★" : "☆"}
-              </div>
+
             </div>
             <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", marginBottom:"10px" }}>Vannamei Shrimp · {producer.region}, {producer.country} · {producer.anos_experiencia} years</div>
             <div>{producer.certificaciones?.map((c: string) => certTag(c))}</div>
