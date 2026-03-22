@@ -1,13 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-
-const SECTIONS = ["overview","browse","orders","products","prices","documents","notifications","support","profile"] as const;
-type Section = typeof SECTIONS[number];
 
 const CERTS = ["ASC","BAP","Organic","GlobalG.A.P.","HACCP","Rainforest","Fair Trade"];
 const PROCESSES = ["Fresh","Frozen","Processed","Whole","Peeled"];
-const REGIONS = ["Pacific Coast","Gulf of Guayaquil","Manabí","El Oro","Esmeraldas"];
+const COUNTRIES = ["Ecuador","Peru","Colombia","Mexico","Chile"];
+const HARVESTS = ["Within 2 weeks","Within 1 month","Within 3 months"];
 
 const consolidations = [
   { id: "CONS-2026-ROT-0042", product: "Vannamei Shrimp", port: "Rotterdam", price: "$4.20/kg", departure: "Apr 15", daysLeft: 8, slots: 14, total: 22, status: "open" },
@@ -31,12 +29,12 @@ const allProducts = [
 
 const MOCK_PRODUCERS: Record<string, any[]> = {
   "Vannamei Shrimp": [
-    { id:1, nombre:"Aquafarm El Guabo", region:"Gulf of Guayaquil", anos_experiencia:14, precio_kg:4.10, volumen_minimo:2, proxima_cosecha:"2026-04-05", certificaciones:["ASC","BAP","HACCP"], procesos:["Fresh","Frozen"] },
-    { id:2, nombre:"Mar Pacífico S.A.", region:"Pacific Coast", anos_experiencia:22, precio_kg:4.20, volumen_minimo:5, proxima_cosecha:"2026-04-12", certificaciones:["ASC","BAP","GlobalG.A.P.","HACCP"], procesos:["Fresh","Frozen","Processed"] },
-    { id:3, nombre:"Camaronera Manabí", region:"Manabí", anos_experiencia:8, precio_kg:3.90, volumen_minimo:1, proxima_cosecha:"2026-04-20", certificaciones:["BAP","HACCP"], procesos:["Fresh"] },
-    { id:4, nombre:"Ecuamar Premium", region:"El Oro", anos_experiencia:18, precio_kg:4.20, volumen_minimo:3, proxima_cosecha:"2026-05-01", certificaciones:["ASC","BAP","Organic","HACCP"], procesos:["Fresh","Frozen"] },
-    { id:5, nombre:"Aquacultura del Sur", region:"Pacific Coast", anos_experiencia:11, precio_kg:4.05, volumen_minimo:2, proxima_cosecha:"2026-04-08", certificaciones:["BAP","GlobalG.A.P.","HACCP"], procesos:["Fresh","Frozen"] },
-    { id:6, nombre:"Esmeraldas Shrimp Co.", region:"Esmeraldas", anos_experiencia:6, precio_kg:3.85, volumen_minimo:1, proxima_cosecha:"2026-04-15", certificaciones:["BAP","Fair Trade"], procesos:["Fresh"] },
+    { id:1, nombre:"Aquafarm El Guabo", country:"Ecuador", anos_experiencia:14, precio_kg:4.10, volumen_minimo:2, proxima_cosecha:"2026-04-05", certificaciones:["ASC","BAP","HACCP"], procesos:["Fresh","Frozen"] },
+    { id:2, nombre:"Mar Pacífico S.A.", country:"Ecuador", anos_experiencia:22, precio_kg:4.20, volumen_minimo:5, proxima_cosecha:"2026-04-12", certificaciones:["ASC","BAP","GlobalG.A.P.","HACCP"], procesos:["Fresh","Frozen","Processed"] },
+    { id:3, nombre:"Camaronera Manabí", country:"Ecuador", anos_experiencia:8, precio_kg:3.90, volumen_minimo:1, proxima_cosecha:"2026-04-20", certificaciones:["BAP","HACCP"], procesos:["Fresh"] },
+    { id:4, nombre:"Ecuamar Premium", country:"Ecuador", anos_experiencia:18, precio_kg:4.20, volumen_minimo:3, proxima_cosecha:"2026-05-01", certificaciones:["ASC","BAP","Organic","HACCP"], procesos:["Fresh","Frozen"] },
+    { id:5, nombre:"Aquacultura del Sur", country:"Ecuador", anos_experiencia:11, precio_kg:4.05, volumen_minimo:2, proxima_cosecha:"2026-04-08", certificaciones:["BAP","GlobalG.A.P.","HACCP"], procesos:["Fresh","Frozen"] },
+    { id:6, nombre:"Esmeraldas Shrimp Co.", country:"Ecuador", anos_experiencia:6, precio_kg:3.85, volumen_minimo:1, proxima_cosecha:"2026-04-15", certificaciones:["BAP","Fair Trade"], procesos:["Fresh"] },
   ],
 };
 
@@ -62,6 +60,52 @@ const notifications = [
   { title: "Shipment departed", body: "CONS-2026-ROT-0042 departed Guayaquil on Mar 10.", time: "Mar 10", read: true },
 ];
 
+type Section = "overview"|"browse"|"orders"|"products"|"prices"|"documents"|"notifications"|"support"|"profile";
+
+function Dropdown({ label, icon, options, selected, onToggle, onClear }: {
+  label: string, icon: React.ReactNode, options: string[],
+  selected: string[], onToggle: (v: string) => void, onClear: () => void
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const hasSelection = selected.length > 0;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <div onClick={() => setOpen(!open)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 14px", background: hasSelection ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `0.5px solid ${hasSelection ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.12)"}`, borderRadius: "8px", color: hasSelection ? "#4ade80" : "rgba(255,255,255,0.7)", fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap" as const }}>
+        {icon}
+        <span>{hasSelection ? `${label} (${selected.length})` : label}</span>
+        <svg style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#0a2414", border: "0.5px solid rgba(74,222,128,0.2)", borderRadius: "10px", padding: "8px", minWidth: "180px", zIndex: 100 }}>
+          <div onClick={() => { onClear(); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", color: selected.length === 0 ? "#4ade80" : "rgba(255,255,255,0.5)", background: selected.length === 0 ? "rgba(74,222,128,0.08)" : "transparent" }}>
+            <div style={{ width: "15px", height: "15px", borderRadius: "3px", border: selected.length === 0 ? "none" : "0.5px solid rgba(255,255,255,0.2)", background: selected.length === 0 ? "#4ade80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              {selected.length === 0 && <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="#071a0e" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+            </div>
+            Any option
+          </div>
+          {options.map(opt => (
+            <div key={opt} onClick={() => onToggle(opt)} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", color: selected.includes(opt) ? "white" : "rgba(255,255,255,0.6)" }}>
+              <div style={{ width: "15px", height: "15px", borderRadius: "3px", border: selected.includes(opt) ? "none" : "0.5px solid rgba(255,255,255,0.2)", background: selected.includes(opt) ? "#4ade80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {selected.includes(opt) && <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="#071a0e" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+              </div>
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MyAccountPage() {
   const [section, setSection] = useState<Section>("overview");
   const [selectedProductPage, setSelectedProductPage] = useState<string | null>(null);
@@ -71,11 +115,10 @@ export default function MyAccountPage() {
   const [browseFilter, setBrowseFilter] = useState("All");
   const [docFilter, setDocFilter] = useState("All");
   const [sortBy, setSortBy] = useState("Best match");
-  const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
-  const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState(8);
-  const [maxVolume, setMaxVolume] = useState(50);
+  const [selCerts, setSelCerts] = useState<string[]>([]);
+  const [selProcesses, setSelProcesses] = useState<string[]>([]);
+  const [selCountries, setSelCountries] = useState<string[]>([]);
+  const [selHarvest, setSelHarvest] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -90,10 +133,13 @@ export default function MyAccountPage() {
     window.location.href = "/";
   };
 
+  const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
+    set(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
+  };
+
   const card: React.CSSProperties = { background: "#071a0e", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "20px" };
   const inp: React.CSSProperties = { width: "100%", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "10px 14px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" };
   const lbl: React.CSSProperties = { color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "0.5px", textTransform: "uppercase", marginBottom: "6px", display: "block" };
-  const selInp: React.CSSProperties = { ...inp, appearance: "none" as const };
 
   const Badge = ({ status }: { status: string }) => {
     const map: any = {
@@ -108,10 +154,10 @@ export default function MyAccountPage() {
     return <span style={{ display: "inline-block", fontSize: "10px", padding: "3px 8px", borderRadius: "4px", background: s.bg, color: s.color, border: `0.5px solid ${s.border}` }}>{s.label}</span>;
   };
 
-  const SideItem = ({ id, label, icon, badge, onClick }: { id?: Section, label: string, icon: React.ReactNode, badge?: number, onClick?: () => void }) => {
-    const isActive = id ? section === id && !selectedProductPage : false;
+  const SideItem = ({ id, label, icon, badge }: { id: Section, label: string, icon: React.ReactNode, badge?: number }) => {
+    const isActive = section === id && !selectedProductPage;
     return (
-      <div onClick={onClick || (() => { if(id) { setSection(id); setSelectedProductPage(null); } })} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize: "13px", cursor: "pointer", borderLeft: `2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition: "all 0.15s" }}>
+      <div onClick={() => { setSection(id); setSelectedProductPage(null); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize: "13px", cursor: "pointer", borderLeft: `2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition: "all 0.15s" }}>
         {icon}
         {label}
         {badge ? <span style={{ marginLeft: "auto", background: "rgba(74,222,128,0.15)", color: "#4ade80", fontSize: "10px", padding: "1px 6px", borderRadius: "10px", border: "0.5px solid rgba(74,222,128,0.3)" }}>{badge}</span> : null}
@@ -121,14 +167,16 @@ export default function MyAccountPage() {
 
   const ic = (d: string) => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d={d}/></svg>;
 
-  // Producers filtered
   const producers = selectedProductPage ? (MOCK_PRODUCERS[selectedProductPage] || []) : [];
   const filteredProducers = producers.filter(p => {
-    if (selectedCerts.length > 0 && !selectedCerts.every(c => p.certificaciones?.includes(c))) return false;
-    if (selectedProcesses.length > 0 && !selectedProcesses.some(pr => p.procesos?.includes(pr))) return false;
-    if (selectedRegions.length > 0 && !selectedRegions.includes(p.region)) return false;
-    if (p.precio_kg > maxPrice) return false;
-    if (p.volumen_minimo > maxVolume) return false;
+    if (selCerts.length > 0 && !selCerts.every(c => p.certificaciones?.includes(c))) return false;
+    if (selProcesses.length > 0 && !selProcesses.some(pr => p.procesos?.includes(pr))) return false;
+    if (selCountries.length > 0 && !selCountries.includes(p.country)) return false;
+    if (selHarvest.length > 0) {
+      const days = Math.ceil((new Date(p.proxima_cosecha).getTime() - Date.now()) / 86400000);
+      const maxDays = selHarvest.includes("Within 2 weeks") ? 14 : selHarvest.includes("Within 1 month") ? 30 : 90;
+      if (days > maxDays) return false;
+    }
     return true;
   }).sort((a, b) => {
     if (sortBy === "Price: Low to high") return a.precio_kg - b.precio_kg;
@@ -144,6 +192,7 @@ export default function MyAccountPage() {
     return true;
   });
   const filteredDocs = docFilter === "All" ? documents : docFilter === "Signed" ? documents.filter(d => d.type === "signed") : documents.filter(d => d.type !== "signed");
+  const hasFilters = selCerts.length > 0 || selProcesses.length > 0 || selCountries.length > 0 || selHarvest.length > 0;
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", minHeight: "100vh", fontFamily: "sans-serif", background: "#020806" }}>
@@ -151,19 +200,16 @@ export default function MyAccountPage() {
       {/* SIDEBAR */}
       <div style={{ background: "#071a0e", borderRight: "0.5px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", minHeight: "100vh", position: "sticky", top: 0, height: "100vh", overflowY: "auto" }}>
         <div style={{ color: "#4ade80", fontSize: "16px", fontWeight: 500, padding: "24px 20px 20px", borderBottom: "0.5px solid rgba(255,255,255,0.06)", marginBottom: "8px" }}>Surco.trade</div>
-
         <div style={{ color: "rgba(255,255,255,0.2)", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "12px 20px 4px" }}>Main</div>
         <SideItem id="overview" label="Overview" icon={ic("M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z")} />
         <SideItem id="browse" label="Browse" icon={ic("M11 3a8 8 0 100 16 8 8 0 000-16zM21 21l-4.35-4.35")} />
         <SideItem id="orders" label="My orders" icon={ic("M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 3h6v4H9z")} />
         <SideItem id="products" label="Products" icon={ic("M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z")} />
         <SideItem id="prices" label="Prices" icon={ic("M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6")} />
-
         <div style={{ color: "rgba(255,255,255,0.2)", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", padding: "12px 20px 4px" }}>My account</div>
         <SideItem id="documents" label="Documents" icon={ic("M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6")} />
         <SideItem id="notifications" label="Notifications" icon={ic("M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0")} badge={notifications.filter(n => !n.read).length} />
         <SideItem id="support" label="Support" icon={ic("M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z")} />
-
         <div style={{ marginTop: "auto", borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "8px" }}>
           <SideItem id="profile" label="My profile" icon={ic("M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8z")} />
           <div onClick={handleSignOut} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 20px", color: "rgba(255,255,255,0.25)", fontSize: "13px", cursor: "pointer" }}>
@@ -178,112 +224,101 @@ export default function MyAccountPage() {
 
         {/* PRODUCERS VIEW */}
         {selectedProductPage && (
-          <div style={{ display: "grid", gridTemplateColumns: "240px 1fr" }}>
-            {/* Filters */}
-            <div style={{ background: "#071a0e", borderRight: "0.5px solid rgba(255,255,255,0.06)", padding: "24px 20px", minHeight: "100vh" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", cursor: "pointer" }} onClick={() => setSelectedProductPage(null)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                <span style={{ color: "#4ade80", fontSize: "12px" }}>Back to Products</span>
-              </div>
-              <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>Filters</div>
-              <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginBottom: "20px" }}>{filteredProducers.length} producers</div>
+          <div style={{ padding: "28px 36px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", cursor: "pointer" }} onClick={() => setSelectedProductPage(null)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              <span style={{ color: "#4ade80", fontSize: "12px" }}>Back to Products</span>
+            </div>
 
-              <div style={{ marginBottom: "20px" }}>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Certifications</div>
-                <div>{CERTS.map(c => <span key={c} onClick={() => setSelectedCerts(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])} style={{ display: "inline-flex", padding: "4px 9px", borderRadius: "6px", fontSize: "10px", cursor: "pointer", margin: "2px", border: selectedCerts.includes(c) ? "0.5px solid rgba(74,222,128,0.35)" : "0.5px solid rgba(255,255,255,0.1)", color: selectedCerts.includes(c) ? "#4ade80" : "rgba(255,255,255,0.4)", background: selectedCerts.includes(c) ? "rgba(74,222,128,0.12)" : "transparent" }}>{c}</span>)}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <div>
+                <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "3px" }}>{selectedProductPage}</h2>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>{filteredProducers.length} verified producers · Ecuador</div>
               </div>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "8px 12px", color: "white", fontSize: "12px", outline: "none", appearance: "none" as const }}>
+                {["Best match","Price: Low to high","Price: High to low","Next harvest"].map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
 
-              <div style={{ marginBottom: "20px" }}>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Process</div>
-                <div>{PROCESSES.map(p => <span key={p} onClick={() => setSelectedProcesses(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])} style={{ display: "inline-flex", padding: "4px 9px", borderRadius: "6px", fontSize: "10px", cursor: "pointer", margin: "2px", border: selectedProcesses.includes(p) ? "0.5px solid rgba(74,222,128,0.35)" : "0.5px solid rgba(255,255,255,0.1)", color: selectedProcesses.includes(p) ? "#4ade80" : "rgba(255,255,255,0.4)", background: selectedProcesses.includes(p) ? "rgba(74,222,128,0.12)" : "transparent" }}>{p}</span>)}</div>
-              </div>
+            {/* FILTROS HORIZONTALES */}
+            <div style={{ background: "#071a0e", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "14px 18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const }}>
+              <Dropdown
+                label="Certifications"
+                icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>}
+                options={CERTS}
+                selected={selCerts}
+                onToggle={v => toggle(selCerts, v, setSelCerts)}
+                onClear={() => setSelCerts([])}
+              />
+              <Dropdown
+                label="Process"
+                icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>}
+                options={PROCESSES}
+                selected={selProcesses}
+                onToggle={v => toggle(selProcesses, v, setSelProcesses)}
+                onClear={() => setSelProcesses([])}
+              />
+              <Dropdown
+                label="Country"
+                icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>}
+                options={COUNTRIES}
+                selected={selCountries}
+                onToggle={v => toggle(selCountries, v, setSelCountries)}
+                onClear={() => setSelCountries([])}
+              />
+              <Dropdown
+                label="Next harvest"
+                icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+                options={HARVESTS}
+                selected={selHarvest}
+                onToggle={v => toggle(selHarvest, v, setSelHarvest)}
+                onClear={() => setSelHarvest([])}
+              />
+              {hasFilters && (
+                <button onClick={() => { setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); }} style={{ background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: "11px", border: "none", cursor: "pointer", marginLeft: "auto" }}>Clear all</button>
+              )}
+            </div>
 
-              <div style={{ marginBottom: "20px" }}>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Region</div>
-                {REGIONS.map(r => (
-                  <div key={r} onClick={() => setSelectedRegions(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r])} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0", cursor: "pointer", fontSize: "11px", color: selectedRegions.includes(r) ? "white" : "rgba(255,255,255,0.4)" }}>
-                    <div style={{ width: "13px", height: "13px", borderRadius: "3px", border: selectedRegions.includes(r) ? "none" : "0.5px solid rgba(255,255,255,0.2)", background: selectedRegions.includes(r) ? "#4ade80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {selectedRegions.includes(r) && <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="#071a0e" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+            {filteredProducers.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.25)", fontSize: "14px" }}>No producers match your filters.</div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
+                {filteredProducers.map(p => (
+                  <div key={p.id} style={{ background: "#071a0e", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: "12px", overflow: "hidden", cursor: "pointer" }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(74,222,128,0.25)")}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}>
+                    <div style={{ height: "100px", background: "#0a2414", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="rgba(74,222,128,0.3)" strokeWidth="1.2">
+                        <path d="M10 34 C13 27 20 23 29 25 C35 27 40 22 38 15"/>
+                        <path d="M29 25 C31 30 29 37 24 39 C19 41 13 39 10 34"/>
+                        <circle cx="37" cy="13" r="2" fill="rgba(74,222,128,0.3)" stroke="none"/>
+                      </svg>
                     </div>
-                    {r}
+                    <div style={{ padding: "14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+                        <div>
+                          <div style={{ color: "white", fontSize: "12px", fontWeight: 500 }}>{p.nombre}</div>
+                          <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", marginTop: "2px" }}>{p.country} · {p.anos_experiencia} yrs</div>
+                        </div>
+                        <div style={{ color: "#4ade80", fontSize: "12px", fontWeight: 500 }}>${p.precio_kg.toFixed(2)}/kg</div>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "3px", marginBottom: "10px" }}>
+                        {p.certificaciones?.slice(0,3).map((c: string) => (
+                          <span key={c} style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "0.5px solid rgba(74,222,128,0.25)", fontSize: "9px", padding: "2px 6px", borderRadius: "4px" }}>{c}</span>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "10px" }}>
+                        <span>Next: {new Date(p.proxima_cosecha).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        <span>Min. {p.volumen_minimo}t</span>
+                      </div>
+                      <button style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "8px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>
+                        View producer →
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
-
-              <div style={{ marginBottom: "20px" }}>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Max price / kg</div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px" }}>$1.00</span>
-                  <span style={{ color: "white", fontSize: "10px" }}>${maxPrice.toFixed(2)}</span>
-                </div>
-                <input type="range" min="1" max="8" step="0.1" value={maxPrice} onChange={e => setMaxPrice(parseFloat(e.target.value))} style={{ width: "100%", accentColor: "#4ade80" }} />
-              </div>
-
-              <div style={{ marginBottom: "20px" }}>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Min. volume</div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px" }}>1 ton</span>
-                  <span style={{ color: "white", fontSize: "10px" }}>{maxVolume} tons</span>
-                </div>
-                <input type="range" min="1" max="50" step="1" value={maxVolume} onChange={e => setMaxVolume(parseInt(e.target.value))} style={{ width: "100%", accentColor: "#4ade80" }} />
-              </div>
-
-              <button onClick={() => { setSelectedCerts([]); setSelectedProcesses([]); setSelectedRegions([]); setMaxPrice(8); setMaxVolume(50); }} style={{ width: "100%", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: "11px", padding: "6px", border: "none", cursor: "pointer" }}>Clear filters</button>
-            </div>
-
-            {/* Producers grid */}
-            <div style={{ padding: "28px 32px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                <div>
-                  <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "4px" }}>{selectedProductPage}</h2>
-                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>{filteredProducers.length} verified producers · Ecuador</div>
-                </div>
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "8px 12px", color: "white", fontSize: "12px", outline: "none", appearance: "none" as const }}>
-                  {["Best match","Price: Low to high","Price: High to low","Next harvest"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-
-              {filteredProducers.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.25)", fontSize: "14px" }}>No producers match your filters.</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
-                  {filteredProducers.map(p => (
-                    <div key={p.id} style={{ background: "#071a0e", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: "12px", overflow: "hidden", cursor: "pointer" }}
-                      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(74,222,128,0.25)")}
-                      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}>
-                      <div style={{ height: "100px", background: "#0a2414", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="rgba(74,222,128,0.3)" strokeWidth="1.2">
-                          <path d="M10 34 C13 27 20 23 29 25 C35 27 40 22 38 15"/>
-                          <path d="M29 25 C31 30 29 37 24 39 C19 41 13 39 10 34"/>
-                          <circle cx="37" cy="13" r="2" fill="rgba(74,222,128,0.3)" stroke="none"/>
-                        </svg>
-                      </div>
-                      <div style={{ padding: "14px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                          <div>
-                            <div style={{ color: "white", fontSize: "12px", fontWeight: 500 }}>{p.nombre}</div>
-                            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", marginTop: "2px" }}>{p.region} · {p.anos_experiencia} yrs</div>
-                          </div>
-                          <div style={{ color: "#4ade80", fontSize: "12px", fontWeight: 500 }}>${p.precio_kg.toFixed(2)}/kg</div>
-                        </div>
-                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "3px", marginBottom: "10px" }}>
-                          {p.certificaciones?.slice(0,3).map((c: string) => (
-                            <span key={c} style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "0.5px solid rgba(74,222,128,0.25)", fontSize: "9px", padding: "2px 6px", borderRadius: "4px" }}>{c}</span>
-                          ))}
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "10px" }}>
-                          <span>Next: {new Date(p.proxima_cosecha).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                          <span>Min. {p.volumen_minimo}t</span>
-                        </div>
-                        <button style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "8px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>
-                          View producer →
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         )}
 
@@ -291,7 +326,6 @@ export default function MyAccountPage() {
         {!selectedProductPage && (
           <div style={{ padding: "32px 40px" }}>
 
-            {/* OVERVIEW */}
             {section === "overview" && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
@@ -333,7 +367,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* BROWSE */}
             {section === "browse" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Browse consolidations</h2>
@@ -357,7 +390,7 @@ export default function MyAccountPage() {
                         </div>
                         <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginTop: "5px" }}>{c.slots} / {c.total} slots filled</div>
                       </div>
-                      <button disabled={c.status === "full"} style={{ background: c.status === "full" ? "rgba(255,255,255,0.06)" : "#4ade80", color: c.status === "full" ? "rgba(255,255,255,0.25)" : "#071a0e", fontSize: "12px", fontWeight: 600, padding: "9px 18px", borderRadius: "50px", border: c.status === "full" ? "0.5px solid rgba(255,255,255,0.08)" : "none", cursor: c.status === "full" ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+                      <button disabled={c.status === "full"} style={{ background: c.status === "full" ? "rgba(255,255,255,0.06)" : "#4ade80", color: c.status === "full" ? "rgba(255,255,255,0.25)" : "#071a0e", fontSize: "12px", fontWeight: 600, padding: "9px 18px", borderRadius: "50px", border: c.status === "full" ? "0.5px solid rgba(255,255,255,0.08)" : "none", cursor: c.status === "full" ? "not-allowed" : "pointer", whiteSpace: "nowrap" as const }}>
                         {c.status === "full" ? "Full" : "Join →"}
                       </button>
                     </div>
@@ -366,7 +399,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* ORDERS */}
             {section === "orders" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>My orders</h2>
@@ -393,7 +425,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* PRODUCTS */}
             {section === "products" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Products</h2>
@@ -410,14 +441,7 @@ export default function MyAccountPage() {
                       <div style={{ color: "white", fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>{p.name}</div>
                       <div style={{ color: "#4ade80", fontSize: "13px", marginBottom: "4px" }}>{p.price}</div>
                       <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", marginBottom: "12px" }}>{p.season}</div>
-                      <button onClick={() => {
-                        setSelectedProductPage(p.name);
-                        setSelectedCerts([]);
-                        setSelectedProcesses([]);
-                        setSelectedRegions([]);
-                        setMaxPrice(8);
-                        setMaxVolume(50);
-                      }} style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "6px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>
+                      <button onClick={() => { setSelectedProductPage(p.name); setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); }} style={{ width: "100%", background: "rgba(74,222,128,0.12)", color: "#4ade80", fontSize: "11px", fontWeight: 600, padding: "7px", borderRadius: "6px", border: "0.5px solid rgba(74,222,128,0.3)", cursor: "pointer" }}>
                         View producers →
                       </button>
                     </div>
@@ -426,7 +450,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* PRICES */}
             {section === "prices" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Live prices</h2>
@@ -453,7 +476,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* DOCUMENTS */}
             {section === "documents" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Documents</h2>
@@ -480,7 +502,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* NOTIFICATIONS */}
             {section === "notifications" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Notifications</h2>
@@ -500,7 +521,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* SUPPORT */}
             {section === "support" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>Support</h2>
@@ -513,7 +533,6 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            {/* PROFILE */}
             {section === "profile" && (
               <div>
                 <h2 style={{ color: "white", fontSize: "18px", fontWeight: 600, marginBottom: "6px" }}>My profile</h2>
