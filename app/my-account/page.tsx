@@ -344,15 +344,23 @@ const [addingProduct, setAddingProduct] = useState(false);
               </select>
             </div>
 
-            <div style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", padding:"14px 18px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap" as const }}>
-              <Dropdown label={t("Certifications","Certificaciones")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>} options={CERTS} selected={selCerts} onToggle={(v: string) => toggle(selCerts, v, setSelCerts)} onClear={() => setSelCerts([])} />
-              <Dropdown label={t("Process","Proceso")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>} options={PROCESSES} selected={selProcesses} onToggle={(v: string) => toggle(selProcesses, v, setSelProcesses)} onClear={() => setSelProcesses([])} />
-              <Dropdown label={t("Country","País")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>} options={COUNTRIES} selected={selCountries} onToggle={(v: string) => toggle(selCountries, v, setSelCountries)} onClear={() => setSelCountries([])} />
-              <Dropdown label={t("Next harvest","Próxima cosecha")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>} options={HARVESTS} selected={selHarvest} onToggle={(v: string) => toggle(selHarvest, v, setSelHarvest)} onClear={() => setSelHarvest([])} />
-              {hasFilters && <button onClick={() => { setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); }} style={{ background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"11px", border:"none", cursor:"pointer", marginLeft:"auto" }}>{t("Clear all","Limpiar")}</button>}
-            </div>
+            {selectedProductPage === "Vannamei Shrimp" && (
+              <div style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", padding:"14px 18px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap" as const }}>
+                <Dropdown label={t("Certifications","Certificaciones")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>} options={CERTS} selected={selCerts} onToggle={(v: string) => toggle(selCerts, v, setSelCerts)} onClear={() => setSelCerts([])} />
+                <Dropdown label={t("Process","Proceso")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>} options={PROCESSES} selected={selProcesses} onToggle={(v: string) => toggle(selProcesses, v, setSelProcesses)} onClear={() => setSelProcesses([])} />
+                <Dropdown label={t("Country","País")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>} options={COUNTRIES} selected={selCountries} onToggle={(v: string) => toggle(selCountries, v, setSelCountries)} onClear={() => setSelCountries([])} />
+                <Dropdown label={t("Next harvest","Próxima cosecha")} icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>} options={HARVESTS} selected={selHarvest} onToggle={(v: string) => toggle(selHarvest, v, setSelHarvest)} onClear={() => setSelHarvest([])} />
+                {hasFilters && <button onClick={() => { setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); }} style={{ background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"11px", border:"none", cursor:"pointer", marginLeft:"auto" }}>{t("Clear all","Limpiar")}</button>}
+              </div>
+            )}
 
-            {filteredProducers.length === 0 ? (
+            {selectedProductPage !== "Vannamei Shrimp" ? (
+              <div style={{ textAlign:"center", padding:"80px 0" }}>
+                <div style={{ fontSize:"32px", marginBottom:"16px" }}>🌱</div>
+                <div style={{ color:"white", fontSize:"16px", fontWeight:500, marginBottom:"8px" }}>{t("Coming soon","Próximamente")}</div>
+                <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"13px" }}>{t("Producers for this product will be available soon.","Los productores para este producto estarán disponibles pronto.")}</div>
+              </div>
+            ) : filteredProducers.length === 0 ? (
               <div style={{ textAlign:"center", padding:"60px 0", color:"rgba(255,255,255,0.25)", fontSize:"14px" }}>{t("No producers match your filters.","Ningún productor coincide con tus filtros.")}</div>
             ) : (
               <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"16px" }}>
@@ -481,7 +489,7 @@ const [addingProduct, setAddingProduct] = useState(false);
                       <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"4px" }}>{p.name}</div>
                       <div style={{ color:"#4ade80", fontSize:"13px", marginBottom:"4px" }}>{p.price}</div>
                       <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", marginBottom:"12px" }}>{p.season}</div>
-                      <button onClick={() => { setSelectedProductPage(p.name); setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); updateURL("products", p.name); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"11px", fontWeight:600, padding:"7px", borderRadius:"6px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>
+                      <button onClick={() => { if (p.name === "Vannamei Shrimp") { setSelectedProductPage(p.name); setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); updateURL("products", p.name); } else { setSelectedProductPage(p.name); updateURL("products", p.name); } }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"11px", fontWeight:600, padding:"7px", borderRadius:"6px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>
                         {t("View producers →","Ver productores →")}
                       </button>
                     </div>
