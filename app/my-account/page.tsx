@@ -106,9 +106,14 @@ const toggleFavorite = (producer: any) => {
     localStorage.setItem("surco_favorites", JSON.stringify(updated));
   };
 
-  const saveConfig = (config: any) => {
-    const newFav = { ...config.producer, config, id: `${config.producer.id}-config` };
-    const updated = [...favorites.filter((f: any) => f.id !== newFav.id), newFav];
+const saveConfig = (config: any) => {
+    const producerId = config.producer.id.toString().replace("-config","").replace(/^fav-/,"");
+    const fixedId = `fav-${producerId}`;
+    const newFav = { ...config.producer, config, id: fixedId };
+    const updated = [...favorites.filter((f: any) => {
+      const fId = f.id.toString().replace("-config","").replace(/^fav-/,"");
+      return fId !== producerId;
+    }), newFav];
     setFavorites(updated);
     localStorage.setItem("surco_favorites", JSON.stringify(updated));
   };
