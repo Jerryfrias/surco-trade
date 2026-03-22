@@ -608,18 +608,82 @@ export default function MyAccountPage() {
               <div>
                 <h2 style={{ color:"white", fontSize:"18px", fontWeight:600, marginBottom:"6px" }}>{t("My profile","Mi perfil")}</h2>
                 <p style={{ color:"rgba(255,255,255,0.35)", fontSize:"13px", marginBottom:"20px" }}>{t("Your company and contact information.","Tu empresa e información de contacto.")}</p>
-                <div style={{ ...card, maxWidth:"480px" }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
-                    {[[t("Company","Empresa"), profile?.company||""],[t("Country","País"), profile?.country||""],[t("First name","Nombre"), profile?.first_name||""],[t("Last name","Apellido"), profile?.last_name||""],[t("Email","Correo"), user?.email||""],[t("WhatsApp","WhatsApp"), profile?.whatsapp||""]].map(([label, val]) => (
-                      <div key={label}><label style={lbl}>{label}</label><input style={inp} defaultValue={val} /></div>
+
+                {/* HEADER */}
+                <div style={{ ...card, marginBottom:"16px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:"20px" }}>
+                    <div style={{ width:"72px", height:"72px", borderRadius:"50%", background:"rgba(74,222,128,0.12)", border:"2px solid rgba(74,222,128,0.2)", display:"flex", alignItems:"center", justifyContent:"center", color:"#4ade80", fontSize:"22px", fontWeight:600, cursor:"pointer", flexShrink:0 }}>
+                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    </div>
+                    <div>
+                      <div style={{ color:"white", fontSize:"18px", fontWeight:600, marginBottom:"3px" }}>{profile?.first_name} {profile?.last_name}</div>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", marginBottom:"3px" }}>{profile?.company}</div>
+                      <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"12px" }}>{profile?.country} · {t("Member since Jan 2026","Miembro desde Ene 2026")}</div>
+                    </div>
+                    <button style={{ marginLeft:"auto", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"9px 20px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Save changes","Guardar cambios")}</button>
+                  </div>
+                </div>
+
+                {/* COMPANY */}
+                <div style={{ ...card, marginBottom:"16px" }}>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Company","Empresa")}</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"14px" }}>
+                    {[[t("Company name","Nombre de empresa"), profile?.company||""],[t("Website","Sitio web"), profile?.website||""],[t("Country","País"), profile?.country||""],[t("City","Ciudad"), profile?.city||""]].map(([l, v]) => (
+                      <div key={l}><label style={lbl}>{l}</label><input style={inp} defaultValue={v} /></div>
                     ))}
                   </div>
-                  <div style={{ marginTop:"14px" }}>
-                    <label style={lbl}>{t("Destination port","Puerto de destino")}</label>
-                    <input style={inp} defaultValue={profile?.port||""} />
-                  </div>
-                  <button style={{ marginTop:"20px", background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:600, padding:"11px 24px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Save changes","Guardar cambios")}</button>
+                  <div><label style={lbl}>{t("About us","Sobre nosotros")}</label><textarea style={{ ...inp, resize:"vertical", minHeight:"90px", lineHeight:"1.5" } as React.CSSProperties} defaultValue={profile?.about || ""} placeholder={t("Tell producers and the Surco.trade team about your company...","Cuéntale a los productores y al equipo de Surco.trade sobre tu empresa...")} /></div>
                 </div>
+
+                {/* CONTACT */}
+                <div style={{ ...card, marginBottom:"16px" }}>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Contact","Contacto")}</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
+                    {[[t("First name","Nombre"), profile?.first_name||""],[t("Last name","Apellido"), profile?.last_name||""],[t("Job title","Cargo"), profile?.job_title||""],[t("Email","Correo"), user?.email||""],[t("WhatsApp","WhatsApp"), profile?.whatsapp||""]].map(([l, v]) => (
+                      <div key={l}><label style={lbl}>{l}</label><input style={inp} defaultValue={v} /></div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* OPERATIONS */}
+                <div style={{ ...card, marginBottom:"16px" }}>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Operations","Operaciones")}</div>
+                  <div style={{ marginBottom:"16px" }}>
+                    <label style={lbl}>{t("Destination ports","Puertos de destino")}</label>
+                    <div style={{ marginTop:"4px" }}>
+                      {(profile?.ports || [profile?.port]).filter(Boolean).map((p: string) => (
+                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
+                      ))}
+                      <button style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add port","Agregar puerto")}</button>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom:"16px" }}>
+                    <label style={lbl}>{t("Products of interest","Productos de interés")}</label>
+                    <div style={{ marginTop:"4px" }}>
+                      {(profile?.products || []).map((p: string) => (
+                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", border:"0.5px solid rgba(255,255,255,0.1)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
+                      ))}
+                      <button style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add product","Agregar producto")}</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={lbl}>{t("Typical order volume","Volumen típico de pedido")}</label>
+                    <select style={{ ...inp, appearance:"none" as const }}>
+                      {["1–5 tons per order","5–20 tons per order","20–50 tons per order","50+ tons per order"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* ACCOUNT */}
+                <div style={card}>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Account","Cuenta")}</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"14px" }}>
+                    <div><label style={lbl}>{t("New password","Nueva contraseña")}</label><input type="password" style={inp} placeholder="••••••••" /></div>
+                    <div><label style={lbl}>{t("Confirm password","Confirmar contraseña")}</label><input type="password" style={inp} placeholder="••••••••" /></div>
+                  </div>
+                  <button style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, padding:"9px 20px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.1)", cursor:"pointer" }}>{t("Update password","Actualizar contraseña")}</button>
+                </div>
+
               </div>
             )}
 
