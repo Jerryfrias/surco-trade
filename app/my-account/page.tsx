@@ -279,11 +279,8 @@ const saveConfig = (config: any) => {
               <div style={{ color:"white", fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>{t("Unsaved changes","Cambios sin guardar")}</div>
               <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"13px", marginBottom:"24px", lineHeight:1.6 }}>{t("You have unsaved changes to this configuration.","Tienes cambios sin guardar en esta configuración.")}</div>
               <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-                <button onClick={() => {
-                  if (selectedProducer) {
-                    const config = { producer: selectedProducer, talla: selectedProducer.config?.talla, presentacion: selectedProducer.config?.presentacion, proceso: selectedProducer.config?.proceso, packaging: selectedProducer.config?.packaging, action: selectedProducer.config?.action || "container", qty: selectedProducer.config?.qty || 1, totalEstimado: selectedProducer.config?.totalEstimado || 0, savedAt: new Date().toISOString() };
-                    saveConfig(config);
-                  }
+               <button onClick={() => {
+                  document.getElementById("btn-update-favorite")?.click();
                   setShowUnsavedPopup(false);
                   setIsDirty(false);
                   if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
@@ -314,7 +311,8 @@ const saveConfig = (config: any) => {
             onBack={() => handleNavigate(() => { setSelectedProducer(null); updateURL("products", selectedProductPage); })}
             isFavorite={isFavorite(selectedProducer)}
             onToggleFavorite={() => toggleFavorite(selectedProducer)}
-            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); }}
+            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); setCurrentConfig(config); }}
+            onConfigChange={(config) => setCurrentConfig(config)}
             onDirty={() => setIsDirty(true)}
             lang={lang}
           />
