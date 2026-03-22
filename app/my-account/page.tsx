@@ -80,6 +80,7 @@ export default function MyAccountPage() {
   const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [currentConfig, setCurrentConfig] = useState<any>(null);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
