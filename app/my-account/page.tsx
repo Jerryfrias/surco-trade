@@ -720,8 +720,17 @@ const profileRefs = {
                       ))}
                       {addingPort ? (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
-                          <input autoFocus value={newPort} onChange={e => setNewPort(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newPort.trim()) { setPorts([...ports, newPort.trim()]); setNewPort(""); setAddingPort(false); } if (e.key === "Escape") { setAddingPort(false); setNewPort(""); } }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", width:"140px" }} placeholder="e.g. Rotterdam" />
-                          <span onClick={() => { if (newPort.trim()) { setPorts([...ports, newPort.trim()]); setNewPort(""); } setAddingPort(false); }} style={{ color:"#4ade80", cursor:"pointer", fontSize:"12px" }}>✓</span>
+                          <input autoFocus value={newPort} onChange={e => setNewPort(e.target.value)} onKeyDown={async e => { if (e.key === "Enter" && newPort.trim()) { const updated = [...ports, newPort.trim()]; setPorts(updated); localStorage.setItem("surco_user_port", updated[0]); await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email); setNewPort(""); setAddingPort(false); } if (e.key === "Escape") { setAddingPort(false); setNewPort(""); } }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", width:"140px" }} placeholder="e.g. Rotterdam" />
+                          <span onClick={async () => { 
+  if (newPort.trim()) { 
+    const updated = [...ports, newPort.trim()]; 
+    setPorts(updated); 
+    localStorage.setItem("surco_user_port", updated[0]);
+    await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email);
+    setNewPort(""); 
+  } 
+  setAddingPort(false); 
+}} style={{ color:"#4ade80", cursor:"pointer", fontSize:"12px" }}>✓</span>
                         </span>
                       ) : (
                         <button onClick={() => setAddingPort(true)} style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add port","Agregar puerto")}</button>
