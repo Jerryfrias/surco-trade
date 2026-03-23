@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 const BLOCKED_DOMAINS = ["gmail","hotmail","yahoo","outlook","icloud","aol","live","msn","ymail","protonmail"];
-const PRODUCTS = ["Vannamei Shrimp","Tilapia Fillet","Dragon Fruit","Organic Banana","Mango Tommy","Cacao","Other"];
 const VOLUMES = ["Less than 1 ton", "1–5 tons", "5–20 tons", "20–50 tons", "50+ tons"];
 const COUNTRIES = ["Netherlands", "Germany", "Spain", "United States", "China", "Japan", "United Kingdom", "France", "Other"];
 
@@ -17,7 +16,7 @@ export default function AccessPage() {
   const [mode, setMode] = useState<"signin" | "register">("signin");
   const [quoteIdx, setQuoteIdx] = useState(0);
   const [showPw, setShowPw] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>(["Seafood"]);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,6 +25,8 @@ export default function AccessPage() {
   const [forgotSent, setForgotSent] = useState(false);
   const [availablePorts, setAvailablePorts] = useState<any[]>([]);
   const [selectedPort, setSelectedPort] = useState("");
+  const [availableProducts, setAvailableProducts] = useState<string[]>([]);
+  const [addingProductReg, setAddingProductReg] = useState(false);
 
   useEffect(() => {
     const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
@@ -37,11 +38,10 @@ export default function AccessPage() {
     supabase.from("puertos").select("*").eq("activo", true).order("region").order("nombre").then(({ data }) => {
       if (data) setAvailablePorts(data);
     });
+    supabase.from("productos").select("nombre").order("nombre").then(({ data }) => {
+      if (data) setAvailableProducts(data.map((p: any) => p.nombre));
+    });
   }, []);
-
-  const toggleProduct = (p: string) => {
-    setSelectedProducts(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
-  };
 
   const validateEmail = (email: string) => {
     const domain = (email.split("@")[1] || "").split(".")[0];
@@ -224,9 +224,23 @@ export default function AccessPage() {
                 <div style={fld}>
                   <label style={{ ...lbl, marginBottom: "8px" }}>Products of interest</label>
                   <div>
-                    {PRODUCTS.map(p => (
-                      <span key={p} onClick={() => toggleProduct(p)} style={{ display: "inline-flex", alignItems: "center", background: selectedProducts.includes(p) ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `0.5px solid ${selectedProducts.includes(p) ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", padding: "6px 11px", color: selectedProducts.includes(p) ? "#4ade80" : "rgba(255,255,255,0.45)", fontSize: "11px", cursor: "pointer", margin: "3px" }}>{p}</span>
+                    {selectedProducts.map(p => (
+                      <span key={p} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(74,222,128,0.12)", border: "0.5px solid rgba(74,222,128,0.35)", borderRadius: "6px", padding: "6px 11px", color: "#4ade80", fontSize: "11px", margin: "3px" }}>{p} <span onClick={() => setSelectedProducts(prev => prev.filter(x => x !== p))} style={{ cursor: "pointer", opacity: 0.6 }}>×</span></span>
                     ))}
+                    {addingProductReg ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", margin: "3px" }}>
+                        <select autoFocus onChange={e => { const val = e.target.value; if (val) { setSelectedProducts(prev => [...prev, val]); setAddingProductReg(false); } }} style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(74,222,128,0.3)", borderRadius: "6px", padding: "4px 10px", color: "white", fontSize: "11px", outline: "none", minWidth: "200px", appearance: "none" as const }}>
+                          <option value="">Select a product...</option>
+                          {availableProducts.filter(p => !selectedProducts.includes(p)).map(p => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                          {!selectedProducts.includes("Other") && <option value="Other">Other</option>}
+                        </select>
+                        <span onClick={() => setAddingProductReg(false)} style={{ color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: "14px" }}>✕</span>
+                      </span>
+                    ) : (
+                      <button type="button" onClick={() => setAddingProductReg(true)} style={{ background: "transparent", color: "rgba(255,255,255,0.4)", border: "0.5px dashed rgba(255,255,255,0.2)", borderRadius: "6px", padding: "5px 12px", fontSize: "11px", cursor: "pointer", margin: "3px" }}>+ Add product</button>
+                    )}
                   </div>
                 </div>
                 <div style={fld}>

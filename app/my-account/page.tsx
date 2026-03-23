@@ -90,6 +90,7 @@ const [newProduct, setNewProduct] = useState("");
 const [addingPort, setAddingPort] = useState(false);
 const [availablePorts, setAvailablePorts] = useState<any[]>([]);
 const [addingProduct, setAddingProduct] = useState(false);
+const [availableProducts, setAvailableProducts] = useState<string[]>([]);
 
 const [profileSaving, setProfileSaving] = useState(false);
 const [profileSaved, setProfileSaved] = useState(false);
@@ -114,6 +115,9 @@ const profileRefs = {
       setUser(user);
       supabase.from("puertos").select("*").eq("activo", true).order("region").order("nombre").then(({ data }) => {
         if (data) setAvailablePorts(data);
+      });
+      supabase.from("productos").select("nombre").order("nombre").then(({ data }) => {
+        if (data) setAvailableProducts(data.map((p: any) => p.nombre));
       });
       supabase.from("compradores").select("*").eq("email", user.email).single().then(({ data }) => {
         setProfile(data);
@@ -756,13 +760,19 @@ const profileRefs = {
                   <div style={{ marginBottom:"16px" }}>
                     <label style={lbl}>{t("Products of interest","Productos de interés")}</label>
                     <div style={{ marginTop:"4px" }}>
-                      {(profile?.products || []).map((p: string) => (
-                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", border:"0.5px solid rgba(255,255,255,0.1)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
+                      {productInterests.map((p: string) => (
+                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span onClick={async () => { const updated = productInterests.filter(x => x !== p); setProductInterests(updated); await supabase.from("compradores").update({ products: updated }).eq("email", user?.email); }} style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
                       ))}
                       {addingProduct ? (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
-                          <input autoFocus value={newProduct} onChange={e => setNewProduct(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newProduct.trim()) { setProductInterests([...productInterests, newProduct.trim()]); setNewProduct(""); setAddingProduct(false); } if (e.key === "Escape") { setAddingProduct(false); setNewProduct(""); } }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", width:"140px" }} placeholder="e.g. Vannamei Shrimp" />
-                          <span onClick={() => { if (newProduct.trim()) { setProductInterests([...productInterests, newProduct.trim()]); setNewProduct(""); } setAddingProduct(false); }} style={{ color:"#4ade80", cursor:"pointer", fontSize:"12px" }}>✓</span>
+                          <select autoFocus value={newProduct} onChange={async e => { const val = e.target.value; if (val) { const updated = [...productInterests, val]; setProductInterests(updated); await supabase.from("compradores").update({ products: updated }).eq("email", user?.email); setAddingProduct(false); setNewProduct(""); } else setNewProduct(val); }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
+                            <option value="">{t("Select a product...","Selecciona un producto...")}</option>
+                            {availableProducts.filter(p => !productInterests.includes(p)).map(p => (
+                              <option key={p} value={p}>{p}</option>
+                            ))}
+                            {!productInterests.includes("Other") && <option value="Other">{t("Other","Otro")}</option>}
+                          </select>
+                          <span onClick={() => { setAddingProduct(false); setNewProduct(""); }} style={{ color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:"14px" }}>✕</span>
                         </span>
                       ) : (
                         <button onClick={() => setAddingProduct(true)} style={{ background:"transparent", color:"rgba(255,255,255,0.4)", border:"0.5px dashed rgba(255,255,255,0.2)", borderRadius:"6px", padding:"5px 12px", fontSize:"11px", cursor:"pointer", margin:"3px" }}>+ {t("Add product","Agregar producto")}</button>
