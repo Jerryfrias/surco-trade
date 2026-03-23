@@ -29,6 +29,9 @@ export default function AccessPage() {
   const [addingProductReg, setAddingProductReg] = useState(false);
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) window.location.href = "/my-account";
+    });
     const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
     return () => clearInterval(iv);
   }, []);
