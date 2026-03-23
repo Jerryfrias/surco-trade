@@ -80,6 +80,8 @@ export default function MyAccountPage() {
   const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const markDirty = () => { setIsDirty(true); isDirtyRef.current = true; };
+  const clearDirty = () => { setIsDirty(false); isDirtyRef.current = false; };
   const [ports, setPorts] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem("surco_ports") || "[]"); } catch { return []; }
@@ -106,6 +108,9 @@ const profileRefs = {
     whatsapp: useRef<HTMLInputElement>(null),
   };
   const currentConfigRef = useRef<any>(null);
+  const isDirtyRef = useRef(false);
+  const sectionRef = useRef<Section>("overview");
+  sectionRef.current = section;
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
@@ -182,12 +187,12 @@ const profileRefs = {
     setProfile((prev: any) => ({ ...prev, ...updates }));
     setProfileSaving(false);
     setProfileSaved(true);
-    setIsDirty(false);
+    clearDirty();
     setTimeout(() => setProfileSaved(false), 2500);
   };
 
   const handleNavigate = (fn: () => void) => {
-    if ((selectedProducer?.config || section === "profile") && isDirty) {
+    if ((selectedProducer?.config || sectionRef.current === "profile") && isDirtyRef.current) {
       setPendingNavigation(() => fn);
       setShowUnsavedPopup(true);
     } else {
@@ -224,7 +229,7 @@ const profileRefs = {
   const SideItem = ({ id, label, icon, badge }: { id: Section, label: string, icon: React.ReactNode, badge?: number }) => {
     const isActive = section === id && !selectedProductPage && !selectedProducer;
     return (
-      <div onClick={() => handleNavigate(() => { setSection(id); setSelectedProductPage(null); setSelectedProducer(null); setIsDirty(false); updateURL(id); })} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize:"13px", cursor:"pointer", borderLeft:`2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition:"all 0.15s" }}>
+      <div onClick={() => handleNavigate(() => { setSection(id); setSelectedProductPage(null); setSelectedProducer(null); clearDirty(); updateURL(id); })} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 20px", color: isActive ? "white" : "rgba(255,255,255,0.4)", fontSize:"13px", cursor:"pointer", borderLeft:`2px solid ${isActive ? "#4ade80" : "transparent"}`, background: isActive ? "rgba(74,222,128,0.06)" : "transparent", transition:"all 0.15s" }}>
         {icon}
         {label}
         {badge ? <span style={{ marginLeft:"auto", background:"rgba(74,222,128,0.15)", color:"#4ade80", fontSize:"10px", padding:"1px 6px", borderRadius:"10px", border:"0.5px solid rgba(74,222,128,0.3)" }}>{badge}</span> : null}
@@ -262,7 +267,7 @@ const profileRefs = {
   const hasFilters = selCerts.length > 0 || selProcesses.length > 0 || selCountries.length > 0 || selHarvest.length > 0;
 
   const ProducerCard = ({ p }: { p: any }) => (
-    <div key={p.id} onClick={() => { setSelectedProducer(p); setIsDirty(false); updateURL("products", selectedProductPage, p.id); }} style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", overflow:"hidden", cursor:"pointer", position:"relative" }}
+    <div key={p.id} onClick={() => { setSelectedProducer(p); clearDirty(); updateURL("products", selectedProductPage, p.id); }} style={{ background:"#071a0e", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"12px", overflow:"hidden", cursor:"pointer", position:"relative" }}
       onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(74,222,128,0.25)")}
       onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}>
       <div style={{ height:"100px", background:"#0a2414", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
@@ -349,7 +354,7 @@ const profileRefs = {
                   if (currentConfigRef.current) saveConfig(currentConfigRef.current);
                   else await saveProfile();
                   setShowUnsavedPopup(false);
-                  setIsDirty(false);
+                  clearDirty();
                   if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
                 }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>
                   {t("Save and leave","Guardar y salir")}
@@ -361,7 +366,7 @@ const profileRefs = {
                 </button>
                 <button onClick={() => {
                   setShowUnsavedPopup(false);
-                  setIsDirty(false);
+                  clearDirty();
                   if (pendingNavigation) { pendingNavigation(); setPendingNavigation(null); }
                 }} style={{ width:"100%", background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"12px", padding:"8px", border:"none", cursor:"pointer" }}>
                   {t("Leave without saving","Salir sin guardar")}
@@ -378,9 +383,9 @@ const profileRefs = {
             onBack={() => handleNavigate(() => { setSelectedProducer(null); updateURL("products", selectedProductPage); })}
             isFavorite={isFavorite(selectedProducer)}
             onToggleFavorite={() => toggleFavorite(selectedProducer)}
-            onSaveConfig={(config) => { saveConfig(config); setIsDirty(false); currentConfigRef.current = config; }}
+            onSaveConfig={(config) => { saveConfig(config); clearDirty(); currentConfigRef.current = config; }}
             onConfigChange={(config) => { currentConfigRef.current = config; }}
-            onDirty={() => setIsDirty(true)}
+            onDirty={() => markDirty()}
             lang={lang}
           />
         )}
@@ -585,7 +590,7 @@ const profileRefs = {
                           <span style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{t("Estimated total","Total estimado")}</span>
                           <span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${f.config.totalEstimado?.toLocaleString()}</span>
                         </div>
-                        <button onClick={() => { setSelectedProducer(f); setIsDirty(false); currentConfigRef.current = f.config; setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                        <button onClick={() => { setSelectedProducer(f); clearDirty(); currentConfigRef.current = f.config; setSection("products"); updateURL("products", "Vannamei Shrimp", f.id); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"8px", borderRadius:"8px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
                       </div>
                     ) : <ProducerCard key={f.id} p={f} />)}
                   </div>
@@ -702,23 +707,23 @@ const profileRefs = {
                 <div style={{ ...card, marginBottom:"16px" }}>
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Company","Empresa")}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"14px" }}>
-                    <div><label style={lbl}>{t("Company name","Nombre de empresa")}</label><input ref={profileRefs.company} style={inp} defaultValue={profile?.company||""} onChange={() => setIsDirty(true)} /></div>
-                      <div><label style={lbl}>{t("Website","Sitio web")}</label><input ref={profileRefs.website} style={inp} defaultValue={profile?.website||""} onChange={() => setIsDirty(true)} /></div>
-                      <div><label style={lbl}>{t("Country","País")}</label><input ref={profileRefs.country} style={inp} defaultValue={profile?.country||""} onChange={() => setIsDirty(true)} /></div>
-                      <div><label style={lbl}>{t("City","Ciudad")}</label><input ref={profileRefs.city} style={inp} defaultValue={profile?.city||""} onChange={() => setIsDirty(true)} /></div>
+                    <div><label style={lbl}>{t("Company name","Nombre de empresa")}</label><input ref={profileRefs.company} style={inp} defaultValue={profile?.company||""} onChange={() => markDirty()} /></div>
+                      <div><label style={lbl}>{t("Website","Sitio web")}</label><input ref={profileRefs.website} style={inp} defaultValue={profile?.website||""} onChange={() => markDirty()} /></div>
+                      <div><label style={lbl}>{t("Country","País")}</label><input ref={profileRefs.country} style={inp} defaultValue={profile?.country||""} onChange={() => markDirty()} /></div>
+                      <div><label style={lbl}>{t("City","Ciudad")}</label><input ref={profileRefs.city} style={inp} defaultValue={profile?.city||""} onChange={() => markDirty()} /></div>
                   </div>
-                  <div><label style={lbl}>{t("About us","Sobre nosotros")}</label><textarea ref={profileRefs.about} style={{ ...inp, resize:"vertical", minHeight:"90px", lineHeight:"1.5" } as React.CSSProperties} defaultValue={profile?.about || ""} placeholder={t("Tell producers and the Surco.trade team about your company...","Cuéntale a los productores y al equipo de Surco.trade sobre tu empresa...")} onChange={() => setIsDirty(true)} /></div>
+                  <div><label style={lbl}>{t("About us","Sobre nosotros")}</label><textarea ref={profileRefs.about} style={{ ...inp, resize:"vertical", minHeight:"90px", lineHeight:"1.5" } as React.CSSProperties} defaultValue={profile?.about || ""} placeholder={t("Tell producers and the Surco.trade team about your company...","Cuéntale a los productores y al equipo de Surco.trade sobre tu empresa...")} onChange={() => markDirty()} /></div>
                 </div>
 
                 {/* CONTACT */}
                 <div style={{ ...card, marginBottom:"16px" }}>
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Contact","Contacto")}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
-                    <div><label style={lbl}>{t("First name","Nombre")}</label><input ref={profileRefs.firstName} style={inp} defaultValue={profile?.first_name||""} onChange={() => setIsDirty(true)} /></div>
-                      <div><label style={lbl}>{t("Last name","Apellido")}</label><input ref={profileRefs.lastName} style={inp} defaultValue={profile?.last_name||""} onChange={() => setIsDirty(true)} /></div>
-                      <div><label style={lbl}>{t("Job title","Cargo")}</label><input ref={profileRefs.jobTitle} style={inp} defaultValue={profile?.job_title||""} onChange={() => setIsDirty(true)} /></div>
+                    <div><label style={lbl}>{t("First name","Nombre")}</label><input ref={profileRefs.firstName} style={inp} defaultValue={profile?.first_name||""} onChange={() => markDirty()} /></div>
+                      <div><label style={lbl}>{t("Last name","Apellido")}</label><input ref={profileRefs.lastName} style={inp} defaultValue={profile?.last_name||""} onChange={() => markDirty()} /></div>
+                      <div><label style={lbl}>{t("Job title","Cargo")}</label><input ref={profileRefs.jobTitle} style={inp} defaultValue={profile?.job_title||""} onChange={() => markDirty()} /></div>
                       <div><label style={lbl}>{t("Email","Correo")}</label><input style={inp} defaultValue={user?.email||""} disabled /></div>
-                      <div><label style={lbl}>{t("WhatsApp","WhatsApp")}</label><input ref={profileRefs.whatsapp} style={inp} defaultValue={profile?.whatsapp||""} onChange={() => setIsDirty(true)} /></div>
+                      <div><label style={lbl}>{t("WhatsApp","WhatsApp")}</label><input ref={profileRefs.whatsapp} style={inp} defaultValue={profile?.whatsapp||""} onChange={() => markDirty()} /></div>
                   </div>
                 </div>
 
