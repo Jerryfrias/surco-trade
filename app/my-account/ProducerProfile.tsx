@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import React from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { ALL_PRES, ALL_PROC, ALL_PACK } from "./data";
 
@@ -59,7 +60,15 @@ const [selectedTalla, setSelectedTalla] = useState(
   const [note, setNote] = useState("");
   const [noteSent, setNoteSent] = useState(false);
   const [saved, setSaved] = useState(false);
-
+const [showConsol, setShowConsol] = useState(false);
+const [consolStep, setConsolStep] = useState(1);
+const [consolType, setConsolType] = useState<"new"|"join">("new");
+const [consolJoinId, setConsolJoinId] = useState<any>(null);
+const [consolTons, setConsolTons] = useState(1);
+const [consolDest, setConsolDest] = useState("");
+const [consolSigned, setConsolSigned] = useState(false);
+const sigCanvasRef = useRef<HTMLCanvasElement>(null);
+const sigDrawing = useRef(false);
   const TONS = 22000;
   const FREIGHT = 3200;
   const subtotal = TONS * (selectedTalla?.precio || 0) * qty;
@@ -215,7 +224,7 @@ const [selectedTalla, setSelectedTalla] = useState(
           </div>
         </div>
       )}
-      
+
       {/* LOCATION */}
       <div style={{ ...card, marginBottom:"16px" }}>
         <div style={stitle}>{t("Location","Ubicación")}</div>
@@ -310,7 +319,7 @@ const [selectedTalla, setSelectedTalla] = useState(
             ) : (
               <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px", marginBottom:"14px" }}>{t("No active consolidations. Be the first to start one.","No hay consolidaciones activas. Sé el primero en iniciar una.")}</div>
             )}
-            <button style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Start / join consolidation →","Iniciar / unirse a consolidación →")}</button>
+            <button onClick={() => { setShowConsol(true); setConsolStep(1); setConsolType("new"); setConsolDest(producer.consolidaciones?.[0]?.puerto || "Rotterdam, Netherlands"); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Start / join consolidation →","Iniciar / unirse a consolidación →")}</button>
           </div>
         )}
 
@@ -326,7 +335,259 @@ const [selectedTalla, setSelectedTalla] = useState(
           </button>
         </div>
       </div>
+{/* CONSOLIDATION MODAL */}
+      {showConsol && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+          <div style={{ background:"#071a0e", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", width:"100%", maxWidth:"500px", maxHeight:"90vh", overflowY:"auto" }}>
 
+            {/* Modal Header */}
+            <div style={{ padding:"24px 28px 0", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+              <div>
+                <div style={{ color:"white", fontSize:"17px", fontWeight:600, marginBottom:"4px" }}>{t("Join or start a consolidation","Unirse o iniciar una consolidación")}</div>
+                <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{producer.nombre} · Vannamei Shrimp · {selectedTalla?.label} {selectedPres[0]} {selectedProc[0]}</div>
+              </div>
+              <div onClick={() => setShowConsol(false)} style={{ cursor:"pointer", color:"rgba(255,255,255,0.3)", fontSize:"24px", marginLeft:"16px" }}>×</div>
+            </div>
+
+            {/* Progress */}
+            <div style={{ padding:"16px 28px 0", display:"flex", alignItems:"center" }}>
+              {[1,2,3,4,5].map((n,i) => (
+                <React.Fragment key={n}>
+                  <div style={{ width:"22px", height:"22px", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", fontWeight:600, flexShrink:0, background: consolStep > n ? "#4ade80" : consolStep === n ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)", border: consolStep === n ? "1.5px solid #4ade80" : "none", color: consolStep > n ? "#071a0e" : consolStep === n ? "#4ade80" : "rgba(255,255,255,0.3)" }}>
+                    {consolStep > n ? "✓" : n}
+                  </div>
+                  {i < 4 && <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.1)", margin:"0 5px" }} />}
+                </React.Fragment>
+              ))}
+            </div>
+            <div style={{ padding:"4px 24px 0", display:"flex", justifyContent:"space-between" }}>
+              {[t("Destination","Destino"), t("Quantity","Cantidad"), t("Notify","Notificar"), t("Confirm","Confirmar"), t("Sign","Firmar")].map((l,i) => (
+                <span key={l} style={{ fontSize:"10px", color: consolStep === i+1 ? "#4ade80" : consolStep > i+1 ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.3)" }}>{l}</span>
+              ))}
+            </div>
+
+            <div style={{ padding:"20px 28px 28px" }}>
+
+              {/* STEP 1 — Destination */}
+              {consolStep === 1 && (
+                <div>
+                  {/* Primary: Start new */}
+                  <div onClick={() => { setConsolType("new"); setConsolJoinId(null); }} style={{ display:"flex", alignItems:"center", gap:"14px", padding:"18px 20px", borderRadius:"10px", cursor:"pointer", marginBottom:"16px", border: consolType === "new" ? "2px solid #4ade80" : "1.5px solid rgba(255,255,255,0.08)", background: consolType === "new" ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.04)" }}>
+                    <div style={{ width:"40px", height:"40px", borderRadius:"10px", background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </div>
+                    <div>
+                      <div style={{ color:"white", fontSize:"15px", fontWeight:600, marginBottom:"3px" }}>{t("Start new consolidation","Iniciar nueva consolidación")}</div>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>to Rotterdam, Netherlands · {t("your preferred port","tu puerto preferido")}</div>
+                    </div>
+                  </div>
+
+                  {/* Join existing */}
+                  {producer.consolidaciones?.length > 0 && (
+                    <>
+                      <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"14px 0" }}>
+                        <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
+                        <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"11px", whiteSpace:"nowrap" }}>{t("or join an active consolidation","o únete a una consolidación activa")}</span>
+                        <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
+                      </div>
+                      {producer.consolidaciones.map((c: any, i: number) => (
+                        <div key={i} onClick={() => { setConsolType("join"); setConsolJoinId(c); setConsolDest(c.puerto); }} style={{ padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px", border: consolType === "join" && consolJoinId === c ? "2px solid #4ade80" : "0.5px solid rgba(255,255,255,0.08)", background: consolType === "join" && consolJoinId === c ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.04)" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                            <div>
+                              <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"2px" }}>{c.puerto} · {t("Departure","Salida")} {c.fecha}</div>
+                              <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{c.slots}/{c.total} {t("slots filled","slots ocupados")} · {c.total - c.slots} {t("available","disponibles")}</div>
+                            </div>
+                            <span style={{ background: c.status==="open" ? "rgba(74,222,128,0.12)" : "rgba(251,146,60,0.12)", color: c.status==="open" ? "#4ade80" : "#fb923c", fontSize:"10px", padding:"2px 8px", borderRadius:"4px" }}>{c.status==="open" ? "Open" : "Closing"}</span>
+                          </div>
+                          <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:"4px", height:"4px", marginTop:"8px", overflow:"hidden" }}>
+                            <div style={{ background: c.status==="open" ? "#4ade80" : "#fb923c", height:"100%", width:`${Math.round(c.slots/c.total*100)}%`, borderRadius:"4px" }} />
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+
+                  {/* Different port */}
+                  <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"14px 0" }}>
+                    <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
+                    <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"11px", whiteSpace:"nowrap" }}>{t("or choose a different port","o elige otro puerto")}</span>
+                    <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
+                  </div>
+                  <select onChange={e => { if(e.target.value) { setConsolType("new"); setConsolDest(e.target.value); setConsolJoinId(null); } }} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", marginBottom:"14px", appearance:"none" as const }}>
+                    <option value="">{t("Select a different port...","Selecciona otro puerto...")}</option>
+                    {["Valencia, Spain","Hamburg, Germany","Miami, USA","Los Angeles, USA","Shanghai, China","Tokyo, Japan"].map(p => <option key={p}>{p}</option>)}
+                  </select>
+
+                  {/* 14 days notice */}
+                  <div style={{ display:"flex", alignItems:"flex-start", gap:"8px", background:"rgba(96,165,250,0.06)", border:"0.5px solid rgba(96,165,250,0.15)", borderRadius:"8px", padding:"10px 12px", marginBottom:"18px" }}>
+                    <span style={{ fontSize:"13px", flexShrink:0 }}>📅</span>
+                    <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"12px", lineHeight:1.5 }}><strong style={{ color:"white" }}>14-day window.</strong> {t("If the container isn't filled in 14 days, the consolidation is cancelled — no penalty.","Si el contenedor no se llena en 14 días, la consolidación se cancela sin penalización.")}</div>
+                  </div>
+
+                  <button onClick={() => setConsolStep(2)} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                </div>
+              )}
+
+              {/* STEP 2 — Quantity */}
+              {consolStep === 2 && (
+                <div>
+                  <div style={{ background:"rgba(74,222,128,0.06)", border:"0.5px solid rgba(74,222,128,0.15)", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px" }}>
+                    <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"3px" }}>{t("Selected destination","Destino seleccionado")}</div>
+                    <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{consolType === "join" && consolJoinId ? `${consolJoinId.puerto} · ${consolJoinId.fecha}` : `${t("New consolidation","Nueva consolidación")} · ${consolDest || "Rotterdam, Netherlands"}`}</div>
+                  </div>
+
+                  {/* Container grid */}
+                  <div style={{ marginBottom:"14px" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px" }}>
+                      <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px" }}>Container · 22 slots</div>
+                      <div style={{ fontSize:"11px", color:"#4ade80" }}>{(consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22) - consolTons} {t("more needed","más necesarios")}</div>
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(11,1fr)", gap:"4px", marginBottom:"8px" }}>
+                      {Array.from({length:22}).map((_,i) => {
+                        const f = consolType === "join" && consolJoinId ? consolJoinId.slots : 0;
+                        return (
+                          <div key={i} style={{ aspectRatio:"1", borderRadius:"4px", background: i < f ? "rgba(74,222,128,0.2)" : i < f + consolTons ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.04)", border: i < f ? "0.5px solid rgba(74,222,128,0.4)" : i < f + consolTons ? "1.5px solid #4ade80" : "0.5px dashed rgba(255,255,255,0.15)" }} />
+                        );
+                      })}
+                    </div>
+                    <div style={{ display:"flex", gap:"14px", fontSize:"10px", color:"rgba(255,255,255,0.3)" }}>
+                      <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(74,222,128,0.2)", border:"0.5px solid rgba(74,222,128,0.4)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Filled","Ocupados")}</span>
+                      <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(74,222,128,0.6)", border:"1.5px solid #4ade80", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Yours","Tuyos")}</span>
+                      <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px dashed rgba(255,255,255,0.15)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Available","Disponibles")}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("How many tons?","¿Cuántas toneladas?")}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:"20px", justifyContent:"center", marginBottom:"6px" }}>
+                    <div onClick={() => setConsolTons(Math.max(1, consolTons-1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
+                    <div style={{ textAlign:"center" }}><div style={{ color:"white", fontSize:"36px", fontWeight:600 }}>{consolTons}</div><div style={{ color:"rgba(255,255,255,0.3)", fontSize:"12px" }}>tons</div></div>
+                    <div onClick={() => setConsolTons(Math.min(consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22, consolTons+1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
+                  </div>
+                  <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", textAlign:"center", marginBottom:"14px" }}>Min. 1 · Max. {consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22}</div>
+
+                  <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"14px", marginBottom:"18px" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{(consolTons*1000).toLocaleString()} kg × ${selectedTalla?.precio?.toFixed(2)}/kg</span><span style={{ color:"white", fontSize:"12px" }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
+                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"8px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
+                  </div>
+
+                  <div style={{ display:"flex", gap:"10px" }}>
+                    <button onClick={() => setConsolStep(1)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    <button onClick={() => setConsolStep(3)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3 — Notify */}
+              {consolStep === 3 && (
+                <div>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("How we'll fill this consolidation","Cómo llenaremos esta consolidación")}</div>
+                  {[
+                    { icon:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.4 1.13 2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.19a16 16 0 006.72 6.72l1.21-1.21a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z", label:"WhatsApp", sub:"~14 buyers with Rotterdam as preferred port" },
+                    { icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6", label:"Email", sub:"Buyers interested in Vannamei Shrimp → Rotterdam" },
+                    { icon:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 22V12h6v10", label:"Homepage", sub:"Visible publicly on surco.trade" },
+                  ].map(row => (
+                    <div key={row.label} style={{ display:"flex", alignItems:"center", gap:"12px", padding:"10px 14px", background:"rgba(255,255,255,0.04)", borderRadius:"8px", marginBottom:"6px" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5"><path d={row.icon}/></svg>
+                      <div style={{ flex:1 }}><div style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{row.label}</div><div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{row.sub}</div></div>
+                      <span style={{ background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"10px", padding:"2px 8px", borderRadius:"4px" }}>Auto</span>
+                    </div>
+                  ))}
+                  <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", padding:"10px 0 18px" }}>🔒 {t("Your company name is shown. Exact tonnage stays private until confirmed.","Tu empresa aparece. La cantidad exacta es privada hasta confirmar.")}</div>
+                  <div style={{ display:"flex", gap:"10px" }}>
+                    <button onClick={() => setConsolStep(2)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    <button onClick={() => setConsolStep(4)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4 — Confirm */}
+              {consolStep === 4 && (
+                <div>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("Review your request","Revisa tu solicitud")}</div>
+                  <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"16px", marginBottom:"14px" }}>
+                    {[
+                      [t("Producer","Productor"), producer.nombre],
+                      [t("Product","Producto"), `Vannamei Shrimp · ${selectedTalla?.label} ${selectedPres[0]} ${selectedProc[0]}`],
+                      [t("Destination","Destino"), consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || "Rotterdam, Netherlands"],
+                      [t("Quantity","Cantidad"), `${consolTons} ton${consolTons > 1 ? "s" : ""} · ${consolTons} slots`],
+                      [t("Price","Precio"), `$${selectedTalla?.precio?.toFixed(2)}/kg · FOB Guayaquil`],
+                    ].map(([l, v]) => (
+                      <div key={l} style={{ display:"flex", justifyContent:"space-between", marginBottom:"7px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{l}</span><span style={{ color:"white", fontSize:"12px" }}>{v}</span></div>
+                    ))}
+                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"10px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
+                  </div>
+                  <div style={{ background:"rgba(251,146,60,0.07)", border:"0.5px solid rgba(251,146,60,0.18)", borderRadius:"8px", padding:"10px 12px", marginBottom:"14px", display:"flex", gap:"8px", alignItems:"flex-start" }}>
+                    <span style={{ color:"#fb923c", flexShrink:0 }}>⚠</span>
+                    <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.5 }}>{t("Reviewed within 24h. Open","Revisado en 24h. Abierto")} <strong style={{ color:"white" }}>14 {t("days","días")}</strong>. {t("Cancellation =","Cancelación =")} <strong style={{ color:"white" }}>20% {t("penalty","penalización")}</strong>. {t("No penalty if container not filled.","Sin penalización si el contenedor no se llena.")}</div>
+                  </div>
+                  <label style={{ display:"flex", alignItems:"flex-start", gap:"10px", cursor:"pointer", marginBottom:"20px" }}>
+                    <input type="checkbox" id="consol-tc" style={{ marginTop:"2px", accentColor:"#4ade80" }} />
+                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.6 }}>{t("I agree to the","Acepto la")} <a href="/terms" target="_blank" style={{ color:"#4ade80" }}>{t("cancellation policy","política de cancelación")}</a> {t("and","y")} <a href="/terms" target="_blank" style={{ color:"#4ade80" }}>{t("terms & conditions","términos y condiciones")}</a>.</span>
+                  </label>
+                  <div style={{ display:"flex", gap:"10px" }}>
+                    <button onClick={() => setConsolStep(3)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    <button onClick={() => setConsolStep(5)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue to sign →","Continuar a firmar →")}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5 — Sign */}
+              {consolStep === 5 && (
+                <div>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("Digital signature","Firma digital")}</div>
+                  <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"12px 16px", marginBottom:"14px" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Reference","Referencia")}</span><span style={{ color:"#4ade80", fontSize:"11px", fontWeight:600 }}>CONS-2026-ROT-{String(Date.now()).slice(-4)}</span></div>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Commitment","Compromiso")}</span><span style={{ color:"white", fontSize:"11px" }}>{consolTons} tons · {consolDest || "Rotterdam"} · ${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
+                  </div>
+                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px" }}>{t("Sign here","Firma aquí")}</div>
+                  <canvas ref={sigCanvasRef} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
+                    onMouseDown={e => { sigDrawing.current=true; const c=sigCanvasRef.current!; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo(e.nativeEvent.offsetX,e.nativeEvent.offsetY); }}
+                    onMouseMove={e => { if(!sigDrawing.current)return; const c=sigCanvasRef.current!; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2; ctx.lineCap="round"; ctx.lineTo(e.nativeEvent.offsetX,e.nativeEvent.offsetY); ctx.stroke(); }}
+                    onMouseUp={() => sigDrawing.current=false}
+                    onMouseLeave={() => sigDrawing.current=false}
+                  />
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:"6px", marginBottom:"6px" }}>
+                    <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px" }}>📍 IP, {t("date and time UTC recorded.","fecha y hora UTC registradas.")}</div>
+                    <button onClick={() => { const c=sigCanvasRef.current!; c.getContext("2d")!.clearRect(0,0,c.width,c.height); }} style={{ background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"11px", border:"none", cursor:"pointer" }}>{t("Clear","Limpiar")}</button>
+                  </div>
+                  <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", marginBottom:"18px" }}>{t("Valid under","Válido bajo")} <a href="/terms" target="_blank" style={{ color:"rgba(74,222,128,0.6)" }}>eIDAS (Europe) / ESIGN Act (USA)</a>.</div>
+                  <div style={{ display:"flex", gap:"10px" }}>
+                    <button onClick={() => setConsolStep(4)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    <button onClick={async () => {
+                      await supabase.from("consolidacion_compradores").insert({
+                        consolidacion_id: consolJoinId?.id || null,
+                        comprador_email: (await supabase.auth.getUser()).data.user?.email,
+                        slots: consolTons,
+                        toneladas: consolTons,
+                        valor_estimado: consolTons*1000*(selectedTalla?.precio||0),
+                        estado_firma: "signed",
+                        fecha_firma: new Date().toISOString(),
+                      });
+                      setConsolSigned(true);
+                      setConsolStep(6 as any);
+                    }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Submit & sign →","Enviar y firmar →")}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 6 — Success */}
+              {consolStep === (6 as any) && (
+                <div style={{ textAlign:"center", padding:"16px 0" }}>
+                  <div style={{ width:"64px", height:"64px", borderRadius:"50%", background:"rgba(74,222,128,0.15)", border:"2px solid rgba(74,222,128,0.3)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:"28px" }}>✓</div>
+                  <div style={{ color:"white", fontSize:"18px", fontWeight:600, marginBottom:"8px" }}>{t("Request submitted!","¡Solicitud enviada!")}</div>
+                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", lineHeight:1.7, marginBottom:"20px" }}>{t("Surco.trade will review and confirm within 24 hours via WhatsApp and email.","Surco.trade revisará y confirmará en 24 horas por WhatsApp y email.")}</div>
+                  <div style={{ background:"rgba(74,222,128,0.08)", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"10px", padding:"14px", marginBottom:"20px" }}>
+                    <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"4px" }}>{t("Reference number","Número de referencia")}</div>
+                    <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>CONS-2026-ROT-{String(Date.now()).slice(-4)}</div>
+                  </div>
+                  <button onClick={() => setShowConsol(false)} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to producer profile","Volver al perfil del productor")}</button>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
       {/* NOTES */}
       <div style={card}>
         <div style={stitle}>{t("Notes for Surco.trade team","Notas para el equipo de Surco.trade")}</div>
