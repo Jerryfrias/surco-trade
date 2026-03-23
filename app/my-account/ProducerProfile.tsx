@@ -27,7 +27,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
 }) {
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
-const [selectedTalla, setSelectedTalla] = useState(
+  const [selectedTalla, setSelectedTalla] = useState(
     producer.config?.talla || producer.tallas?.find((t: any) => t.precio) || producer.tallas?.[0]
   );
   const [selectedPres, setSelectedPres] = useState<string[]>(
@@ -60,25 +60,24 @@ const [selectedTalla, setSelectedTalla] = useState(
   const [note, setNote] = useState("");
   const [noteSent, setNoteSent] = useState(false);
   const [saved, setSaved] = useState(false);
-const [showConsol, setShowConsol] = useState(false);
-const [consolStep, setConsolStep] = useState(1);
-const [consolType, setConsolType] = useState<"new"|"join">("new");
-const [consolJoinId, setConsolJoinId] = useState<any>(null);
-const [consolTons, setConsolTons] = useState(1);
-const [consolDest, setConsolDest] = useState(
-    typeof window !== "undefined" ? localStorage.getItem("surco_user_port") || "" : ""
-  );
-const [consolSigned, setConsolSigned] = useState(false);
-const [consolPortWarning, setConsolPortWarning] = useState(false);
-const sigCanvasRef = useRef<HTMLCanvasElement>(null);
-const sigDrawing = useRef(false);
+  const [showConsol, setShowConsol] = useState(false);
+  const [consolStep, setConsolStep] = useState(1);
+  const [consolType, setConsolType] = useState<"new"|"join">("new");
+  const [consolJoinId, setConsolJoinId] = useState<any>(null);
+  const [consolTons, setConsolTons] = useState(1);
+  const userPort = typeof window !== "undefined" ? localStorage.getItem("surco_user_port") || "" : "";
+  const [consolDest, setConsolDest] = useState(userPort);
+  const [consolSigned, setConsolSigned] = useState(false);
+  const [consolPortWarning, setConsolPortWarning] = useState(false);
+  const sigCanvasRef = useRef<HTMLCanvasElement>(null);
+  const sigDrawing = useRef(false);
   const TONS = 22000;
   const FREIGHT = 3200;
   const subtotal = TONS * (selectedTalla?.precio || 0) * qty;
   const freight = FREIGHT * qty;
   const total = subtotal + freight;
 
- const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
+  const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
     const newArr = arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
     if (producer.config) onDirty();
     set(newArr);
@@ -124,7 +123,6 @@ const sigDrawing = useRef(false);
             <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"8px" }}>
               <h1 style={{ fontSize:"20px", fontWeight:600 }}>{producer.nombre}</h1>
               <span style={{ background:"rgba(74,222,128,0.15)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.3)", fontSize:"10px", padding:"3px 8px", borderRadius:"4px" }}>Verified</span>
-
             </div>
             <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", marginBottom:"10px" }}>Vannamei Shrimp · {producer.region}, {producer.country} · {producer.anos_experiencia} years</div>
             <div>{producer.certificaciones?.map((c: string) => certTag(c))}</div>
@@ -141,7 +139,6 @@ const sigDrawing = useRef(false);
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px", marginBottom:"16px" }}>
         <div style={card}>
           <div style={stitle}>{t("Product specifications","Especificaciones del producto")}</div>
-
           <div style={{ marginBottom:"16px" }}>
             <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, marginBottom:"8px" }}>{t("Size & price / kg","Talla & precio / kg")}</div>
             <div>
@@ -153,28 +150,24 @@ const sigDrawing = useRef(false);
               ))}
             </div>
           </div>
-
           <div style={{ marginBottom:"14px" }}>
             <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, marginBottom:"8px" }}>{t("Presentation","Presentación")}</div>
             {ALL_PRES.map(p => (
               <Opt key={p} label={p} sub={p==="HLSO"?"Head-less, shell-on":p==="PD"?"Peeled & deveined":p==="HOSO"?"Head-on, shell-on":"Peeled undeveined"} available={producer.presentaciones?.includes(p)} selected={selectedPres.includes(p)} onToggle={() => toggle(selectedPres, p, setSelectedPres)} />
             ))}
           </div>
-
           <div style={{ marginBottom:"14px" }}>
             <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, marginBottom:"8px" }}>{t("Process","Proceso")}</div>
             {ALL_PROC.map(p => (
               <Opt key={p} label={p} available={producer.procesos?.includes(p)} selected={selectedProc.includes(p)} onToggle={() => toggle(selectedProc, p, setSelectedProc)} />
             ))}
           </div>
-
           <div>
             <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, marginBottom:"8px" }}>{t("Packaging","Empaque")}</div>
             {ALL_PACK.map(p => (
               <Opt key={p} label={p} available={producer.packaging?.includes(p)} selected={selectedPack.includes(p)} onToggle={() => toggle(selectedPack, p, setSelectedPack)} />
             ))}
           </div>
-
           <div style={{ background:"rgba(74,222,128,0.08)", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"10px", padding:"12px 16px", marginTop:"14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{t("Selected price","Precio seleccionado")}</div>
             <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>${selectedTalla?.precio?.toFixed(2)}<span style={{ fontSize:"12px", fontWeight:400, color:"rgba(255,255,255,0.35)" }}>/kg</span></div>
@@ -207,7 +200,8 @@ const sigDrawing = useRef(false);
           </div>
         </div>
       </div>
-{/* DESCRIPTION + PHOTOS */}
+
+      {/* DESCRIPTION + PHOTOS */}
       {producer.descripcion && (
         <div style={{ ...card, marginBottom:"16px" }}>
           <div style={stitle}>{t("About this producer","Sobre este productor")}</div>
@@ -286,7 +280,7 @@ const sigDrawing = useRef(false);
                 <span style={{ color:"white", fontSize:"12px" }}>${subtotal.toLocaleString()}</span>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"10px" }}>
-                <span style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{t("Freight estimate (Rotterdam)","Estimado de flete (Rotterdam)")}</span>
+                <span style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{t("Freight estimate","Estimado de flete")} ({userPort || "Rotterdam"})</span>
                 <span style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px" }}>~${freight.toLocaleString()}</span>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"10px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}>
@@ -322,7 +316,7 @@ const sigDrawing = useRef(false);
             ) : (
               <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px", marginBottom:"14px" }}>{t("No active consolidations. Be the first to start one.","No hay consolidaciones activas. Sé el primero en iniciar una.")}</div>
             )}
-            <button onClick={() => { setShowConsol(true); setConsolStep(1); setConsolType("new"); setConsolDest(producer.consolidaciones?.[0]?.puerto || "Rotterdam, Netherlands"); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Start / join consolidation →","Iniciar / unirse a consolidación →")}</button>
+            <button onClick={() => { setShowConsol(true); setConsolStep(1); setConsolType("new"); setConsolDest(userPort || producer.consolidaciones?.[0]?.puerto || "Rotterdam, Netherlands"); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Start / join consolidation →","Iniciar / unirse a consolidación →")}</button>
           </div>
         )}
 
@@ -330,15 +324,12 @@ const sigDrawing = useRef(false);
         <div style={{ borderTop:"0.5px solid rgba(255,255,255,0.07)", paddingTop:"14px", display:"flex", justifyContent:"center" }}>
           <button id="btn-update-favorite" onClick={handleSaveConfig} style={{ display:"flex", alignItems:"center", gap:"8px", background: saved ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: saved ? "#4ade80" : "rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, padding:"10px 20px", borderRadius:"50px", border: saved ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)", cursor:"pointer", transition:"all 0.2s" }}>
             <span style={{ fontSize:"16px" }}>{saved ? "★" : "☆"}</span>
-            {saved 
-    ? t("Saved!","¡Guardado!") 
-    : isFromFavorite 
-      ? t("Update favorite","Actualizar favorito") 
-      : t("Save this configuration to favorites","Guardar esta configuración en favoritos")}
+            {saved ? t("Saved!","¡Guardado!") : isFromFavorite ? t("Update favorite","Actualizar favorito") : t("Save this configuration to favorites","Guardar esta configuración en favoritos")}
           </button>
         </div>
       </div>
-{/* CONSOLIDATION MODAL */}
+
+      {/* CONSOLIDATION MODAL */}
       {showConsol && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
           <div style={{ background:"#071a0e", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", width:"100%", maxWidth:"500px", maxHeight:"90vh", overflowY:"auto" }}>
@@ -374,18 +365,16 @@ const sigDrawing = useRef(false);
               {/* STEP 1 — Destination */}
               {consolStep === 1 && (
                 <div>
-                  {/* Primary: Start new */}
                   <div onClick={() => { setConsolType("new"); setConsolJoinId(null); }} style={{ display:"flex", alignItems:"center", gap:"14px", padding:"18px 20px", borderRadius:"10px", cursor:"pointer", marginBottom:"16px", border: consolType === "new" ? "2px solid #4ade80" : "1.5px solid rgba(255,255,255,0.08)", background: consolType === "new" ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.04)" }}>
                     <div style={{ width:"40px", height:"40px", borderRadius:"10px", background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     </div>
                     <div>
                       <div style={{ color:"white", fontSize:"15px", fontWeight:600, marginBottom:"3px" }}>{t("Start new consolidation","Iniciar nueva consolidación")}</div>
-                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>to Rotterdam, Netherlands · {t("your preferred port","tu puerto preferido")}</div>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{userPort ? `to ${userPort} · ${t("your preferred port","tu puerto preferido")}` : t("Select a destination port below","Selecciona un puerto de destino abajo")}</div>
                     </div>
                   </div>
 
-                  {/* Join existing */}
                   {producer.consolidaciones?.length > 0 && (
                     <>
                       <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"14px 0" }}>
@@ -410,7 +399,6 @@ const sigDrawing = useRef(false);
                     </>
                   )}
 
-                  {/* Different port */}
                   <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"14px 0" }}>
                     <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
                     <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"11px", whiteSpace:"nowrap" }}>{t("or choose a different port","o elige otro puerto")}</span>
@@ -418,18 +406,17 @@ const sigDrawing = useRef(false);
                   </div>
                   <select onChange={e => { if(e.target.value) { setConsolType("new"); setConsolDest(e.target.value); setConsolJoinId(null); } }} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", marginBottom:"14px", appearance:"none" as const }}>
                     <option value="">{t("Select a different port...","Selecciona otro puerto...")}</option>
-                    {["Valencia, Spain","Hamburg, Germany","Miami, USA","Los Angeles, USA","Shanghai, China","Tokyo, Japan"].map(p => <option key={p} value={p}>{p}</option>)}
+                    {["Rotterdam, Netherlands","Hamburg, Germany","Valencia, Spain","Antwerp, Belgium","Barcelona, Spain","Felixstowe, UK","Le Havre, France","Genoa, Italy","Miami, USA","Los Angeles, USA","New York, USA","Houston, USA","Shanghai, China","Tokyo, Japan","Osaka, Japan","Busan, South Korea","Singapore, Singapore","Hong Kong, China","Dubai, UAE","Guayaquil, Ecuador"].map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
 
-                  {/* 14 days notice */}
                   <div style={{ display:"flex", alignItems:"flex-start", gap:"8px", background:"rgba(96,165,250,0.06)", border:"0.5px solid rgba(96,165,250,0.15)", borderRadius:"8px", padding:"10px 12px", marginBottom:"18px" }}>
                     <span style={{ fontSize:"13px", flexShrink:0 }}>📅</span>
                     <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"12px", lineHeight:1.5 }}><strong style={{ color:"white" }}>14-day window.</strong> {t("If the container isn't filled in 14 days, the consolidation is cancelled — no penalty.","Si el contenedor no se llena en 14 días, la consolidación se cancela sin penalización.")}</div>
                   </div>
 
                   <button onClick={() => {
-                    const registeredPorts = ["Rotterdam, Netherlands","Hamburg, Germany","Valencia, Spain","Miami, USA","Los Angeles, USA","Shanghai, China","Tokyo, Japan"];
-                    const dest = consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || "Rotterdam, Netherlands";
+                    const registeredPorts = ["Rotterdam, Netherlands","Hamburg, Germany","Valencia, Spain","Antwerp, Belgium","Barcelona, Spain","Felixstowe, UK","Le Havre, France","Genoa, Italy","Miami, USA","Los Angeles, USA","New York, USA","Houston, USA","Shanghai, China","Tokyo, Japan","Osaka, Japan","Busan, South Korea","Singapore, Singapore","Hong Kong, China","Dubai, UAE","Guayaquil, Ecuador"];
+                    const dest = consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || userPort || "Rotterdam, Netherlands";
                     const isRegistered = registeredPorts.some(p => dest.toLowerCase().includes(p.split(",")[0].toLowerCase()));
                     if (!isRegistered) { setConsolPortWarning(true); } else { setConsolStep(2); }
                   }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
@@ -452,10 +439,8 @@ const sigDrawing = useRef(false);
                 <div>
                   <div style={{ background:"rgba(74,222,128,0.06)", border:"0.5px solid rgba(74,222,128,0.15)", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px" }}>
                     <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"3px" }}>{t("Selected destination","Destino seleccionado")}</div>
-                    <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{consolType === "join" && consolJoinId ? `${consolJoinId.puerto} · ${consolJoinId.fecha}` : `${t("New consolidation","Nueva consolidación")} · ${consolDest || "Rotterdam, Netherlands"}`}</div>
+                    <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{consolType === "join" && consolJoinId ? `${consolJoinId.puerto} · ${consolJoinId.fecha}` : `${t("New consolidation","Nueva consolidación")} · ${consolDest || userPort || "Rotterdam, Netherlands"}`}</div>
                   </div>
-
-                  {/* Container grid */}
                   <div style={{ marginBottom:"14px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px" }}>
                       <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px" }}>Container · 22 slots</div>
@@ -475,7 +460,6 @@ const sigDrawing = useRef(false);
                       <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px dashed rgba(255,255,255,0.15)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Available","Disponibles")}</span>
                     </div>
                   </div>
-
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("How many tons?","¿Cuántas toneladas?")}</div>
                   <div style={{ display:"flex", alignItems:"center", gap:"20px", justifyContent:"center", marginBottom:"6px" }}>
                     <div onClick={() => setConsolTons(Math.max(1, consolTons-1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
@@ -483,12 +467,10 @@ const sigDrawing = useRef(false);
                     <div onClick={() => setConsolTons(Math.min(consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22, consolTons+1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
                   </div>
                   <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", textAlign:"center", marginBottom:"14px" }}>Min. 1 · Max. {consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22}</div>
-
                   <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"14px", marginBottom:"18px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{(consolTons*1000).toLocaleString()} kg × ${selectedTalla?.precio?.toFixed(2)}/kg</span><span style={{ color:"white", fontSize:"12px" }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
                     <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"8px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
                   </div>
-
                   <div style={{ display:"flex", gap:"10px" }}>
                     <button onClick={() => setConsolStep(1)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
                     <button onClick={() => setConsolStep(3)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
@@ -501,8 +483,8 @@ const sigDrawing = useRef(false);
                 <div>
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("How we'll fill this consolidation","Cómo llenaremos esta consolidación")}</div>
                   {[
-                    { icon:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.4 1.13 2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.19a16 16 0 006.72 6.72l1.21-1.21a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z", label:"WhatsApp", sub:"~14 buyers with Rotterdam as preferred port" },
-                    { icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6", label:"Email", sub:"Buyers interested in Vannamei Shrimp → Rotterdam" },
+                    { icon:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.4 1.13 2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.19a16 16 0 006.72 6.72l1.21-1.21a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z", label:"WhatsApp", sub:`~14 buyers with ${consolDest || userPort || "Rotterdam"} as preferred port` },
+                    { icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6", label:"Email", sub:`Buyers interested in Vannamei Shrimp → ${consolDest || userPort || "Rotterdam"}` },
                     { icon:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 22V12h6v10", label:"Homepage", sub:"Visible publicly on surco.trade" },
                   ].map(row => (
                     <div key={row.label} style={{ display:"flex", alignItems:"center", gap:"12px", padding:"10px 14px", background:"rgba(255,255,255,0.04)", borderRadius:"8px", marginBottom:"6px" }}>
@@ -527,7 +509,7 @@ const sigDrawing = useRef(false);
                     {[
                       [t("Producer","Productor"), producer.nombre],
                       [t("Product","Producto"), `Vannamei Shrimp · ${selectedTalla?.label} ${selectedPres[0]} ${selectedProc[0]}`],
-                      [t("Destination","Destino"), consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || "Rotterdam, Netherlands"],
+                      [t("Destination","Destino"), consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || userPort || "Rotterdam, Netherlands"],
                       [t("Quantity","Cantidad"), `${consolTons} ton${consolTons > 1 ? "s" : ""} · ${consolTons} slots`],
                       [t("Price","Precio"), `$${selectedTalla?.precio?.toFixed(2)}/kg · FOB Guayaquil`],
                     ].map(([l, v]) => (
@@ -555,8 +537,8 @@ const sigDrawing = useRef(false);
                 <div>
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("Digital signature","Firma digital")}</div>
                   <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"12px 16px", marginBottom:"14px" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Reference","Referencia")}</span><span style={{ color:"#4ade80", fontSize:"11px", fontWeight:600 }}>CONS-2026-ROT-{String(Date.now()).slice(-4)}</span></div>
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Commitment","Compromiso")}</span><span style={{ color:"white", fontSize:"11px" }}>{consolTons} tons · {consolDest || "Rotterdam"} · ${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Reference","Referencia")}</span><span style={{ color:"#4ade80", fontSize:"11px", fontWeight:600 }}>CONS-2026-{(consolDest||userPort||"ROT").split(",")[0].slice(0,3).toUpperCase()}-{String(Date.now()).slice(-4)}</span></div>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Commitment","Compromiso")}</span><span style={{ color:"white", fontSize:"11px" }}>{consolTons} tons · {consolDest || userPort || "Rotterdam"} · ${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
                   </div>
                   <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px" }}>{t("Sign here","Firma aquí")}</div>
                   <canvas ref={sigCanvasRef} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
@@ -597,7 +579,7 @@ const sigDrawing = useRef(false);
                   <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", lineHeight:1.7, marginBottom:"20px" }}>{t("Surco.trade will review and confirm within 24 hours via WhatsApp and email.","Surco.trade revisará y confirmará en 24 horas por WhatsApp y email.")}</div>
                   <div style={{ background:"rgba(74,222,128,0.08)", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"10px", padding:"14px", marginBottom:"20px" }}>
                     <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"4px" }}>{t("Reference number","Número de referencia")}</div>
-                    <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>CONS-2026-ROT-{String(Date.now()).slice(-4)}</div>
+                    <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>CONS-2026-{(consolDest||userPort||"ROT").split(",")[0].slice(0,3).toUpperCase()}-{String(Date.now()).slice(-4)}</div>
                   </div>
                   <button onClick={() => setShowConsol(false)} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to producer profile","Volver al perfil del productor")}</button>
                 </div>
@@ -607,6 +589,7 @@ const sigDrawing = useRef(false);
           </div>
         </div>
       )}
+
       {/* NOTES */}
       <div style={card}>
         <div style={stitle}>{t("Notes for Surco.trade team","Notas para el equipo de Surco.trade")}</div>

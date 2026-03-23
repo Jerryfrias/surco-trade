@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 
 const BLOCKED_DOMAINS = ["gmail","hotmail","yahoo","outlook","icloud","aol","live","msn","ymail","protonmail"];
 const PRODUCTS = ["Seafood", "Fruits", "Agro", "Floriculture", "Poultry"];
-const PORTS = ["Rotterdam, Netherlands", "Hamburg, Germany", "Valencia, Spain", "Miami, USA", "Houston, USA", "Shanghai, China", "Tokyo, Japan"];
 const VOLUMES = ["Less than 1 ton", "1–5 tons", "5–20 tons", "20–50 tons", "50+ tons"];
 const COUNTRIES = ["Netherlands", "Germany", "Spain", "United States", "China", "Japan", "United Kingdom", "France", "Other"];
 
@@ -25,10 +24,19 @@ export default function AccessPage() {
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
+  const [availablePorts, setAvailablePorts] = useState<any[]>([]);
+  const [selectedPort, setSelectedPort] = useState("");
 
   useEffect(() => {
     const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
     return () => clearInterval(iv);
+  }, []);
+
+  // Cargar puertos desde Supabase al montar
+  useEffect(() => {
+    supabase.from("puertos").select("*").eq("activo", true).order("region").order("nombre").then(({ data }) => {
+      if (data) setAvailablePorts(data);
+    });
   }, []);
 
   const toggleProduct = (p: string) => {
@@ -65,6 +73,7 @@ export default function AccessPage() {
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      const portArray = selectedPort ? [selectedPort] : [];
       await supabase.from("compradores").insert({
         email,
         company: (document.getElementById("reg-company") as HTMLInputElement).value,
@@ -72,7 +81,8 @@ export default function AccessPage() {
         last_name: (document.getElementById("reg-ln") as HTMLInputElement).value,
         country: (document.getElementById("reg-country") as HTMLSelectElement).value,
         whatsapp: (document.getElementById("reg-wa") as HTMLInputElement).value,
-        port: (document.getElementById("reg-port") as HTMLSelectElement).value,
+        port: selectedPort,        // campo legacy
+        ports: portArray,          // campo nuevo (array)
         products: selectedProducts,
         volume: (document.getElementById("reg-vol") as HTMLSelectElement).value,
       });
@@ -191,10 +201,26 @@ export default function AccessPage() {
                   </div>
                   <div style={fld}><label style={lbl}>WhatsApp</label><input id="reg-wa" style={inp} placeholder="+31 6 00000000" /></div>
                 </div>
+
+                {/* DESTINATION PORT — desde Supabase */}
                 <div style={fld}>
                   <label style={lbl}>Destination port</label>
-                  <select id="reg-port" style={sel}><option value="">Select port</option>{PORTS.map(p => <option key={p}>{p}</option>)}</select>
+                  <select
+                    value={selectedPort}
+                    onChange={e => setSelectedPort(e.target.value)}
+                    style={sel}
+                  >
+                    <option value="">Select port</option>
+                    {["Europe","Americas","Asia","Middle East"].map(region => (
+                      <optgroup key={region} label={region}>
+                        {availablePorts.filter(p => p.region === region).map(p => (
+                          <option key={p.id} value={p.nombre}>{p.nombre}, {p.pais}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
+
                 <div style={fld}>
                   <label style={{ ...lbl, marginBottom: "8px" }}>Products of interest</label>
                   <div>
