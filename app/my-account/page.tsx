@@ -80,11 +80,15 @@ export default function MyAccountPage() {
   const [showUnsavedPopup, setShowUnsavedPopup] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [ports, setPorts] = useState<string[]>([]);
+  const [ports, setPorts] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("surco_ports") || "[]"); } catch { return []; }
+  });
 const [productInterests, setProductInterests] = useState<string[]>([]);
 const [newPort, setNewPort] = useState("");
 const [newProduct, setNewProduct] = useState("");
 const [addingPort, setAddingPort] = useState(false);
+const [availablePorts, setAvailablePorts] = useState<any[]>([]);
 const [addingProduct, setAddingProduct] = useState(false);
 
 const [profileSaving, setProfileSaving] = useState(false);
@@ -108,6 +112,9 @@ const profileRefs = {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { window.location.href = "/access"; return; }
       setUser(user);
+      supabase.from("puertos").select("*").eq("activo", true).order("region").order("nombre").then(({ data }) => {
+        if (data) setAvailablePorts(data);
+      });
       supabase.from("compradores").select("*").eq("email", user.email).single().then(({ data }) => {
         setProfile(data);
         if (data?.ports?.length > 0) {
@@ -720,7 +727,16 @@ const profileRefs = {
                       ))}
                       {addingPort ? (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
-                          <input autoFocus value={newPort} onChange={e => setNewPort(e.target.value)} onKeyDown={async e => { if (e.key === "Enter" && newPort.trim()) { const updated = [...ports, newPort.trim()]; setPorts(updated); localStorage.setItem("surco_user_port", updated[0]); await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email); setNewPort(""); setAddingPort(false); } if (e.key === "Escape") { setAddingPort(false); setNewPort(""); } }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", width:"140px" }} placeholder="e.g. Rotterdam" />
+                          <select autoFocus value={newPort} onChange={e => setNewPort(e.target.value)} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
+                            <option value="">{t("Select a port...","Selecciona un puerto...")}</option>
+                            {["Europe","Americas","Asia","Middle East"].map(region => (
+                              <optgroup key={region} label={region}>
+                                {availablePorts.filter(p => p.region === region && !ports.includes(p.nombre)).map(p => (
+                                  <option key={p.id} value={p.nombre}>{p.nombre} · {p.pais}</option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
                           <span onClick={async () => { 
   if (newPort.trim()) { 
     const updated = [...ports, newPort.trim()]; 
