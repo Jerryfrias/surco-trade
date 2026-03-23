@@ -110,7 +110,14 @@ const profileRefs = {
       setUser(user);
       supabase.from("compradores").select("*").eq("email", user.email).single().then(({ data }) => {
         setProfile(data);
-        if (data?.port) localStorage.setItem("surco_user_port", data.port);
+        if (data?.ports?.length > 0) {
+          setPorts(data.ports);
+          localStorage.setItem("surco_user_port", data.ports[0]);
+        } else if (data?.port) {
+          setPorts([data.port]);
+          localStorage.setItem("surco_user_port", data.port);
+        }
+        if (data?.products?.length > 0) setProductInterests(data.products);
       });
     });
   }, []);
