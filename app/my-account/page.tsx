@@ -722,12 +722,12 @@ const profileRefs = {
                   <div style={{ marginBottom:"16px" }}>
                     <label style={lbl}>{t("Destination ports","Puertos de destino")}</label>
                     <div style={{ marginTop:"4px" }}>
-                      {(profile?.ports || [profile?.port]).filter(Boolean).map((p: string) => (
-                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
+                      {ports.map((p: string) => (
+                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span onClick={async () => { const updated = ports.filter(x => x !== p); setPorts(updated); localStorage.setItem("surco_ports", JSON.stringify(updated)); if (updated[0]) localStorage.setItem("surco_user_port", updated[0]); else localStorage.removeItem("surco_user_port"); await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email); }} style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
                       ))}
                       {addingPort ? (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
-                          <select autoFocus value={newPort} onChange={e => setNewPort(e.target.value)} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
+                          <select autoFocus value={newPort} onChange={async e => { const val = e.target.value; if (val) { const updated = [...ports, val]; setPorts(updated); localStorage.setItem("surco_user_port", updated[0]); localStorage.setItem("surco_ports", JSON.stringify(updated)); await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email); setAddingPort(false); setNewPort(""); } else setNewPort(val); }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
                             <option value="">{t("Select a port...","Selecciona un puerto...")}</option>
                             {["Europe","Americas","Asia","Middle East"].map(region => (
                               <optgroup key={region} label={region}>
