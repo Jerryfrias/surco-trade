@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 const BLOCKED_DOMAINS = ["gmail","hotmail","yahoo","outlook","icloud","aol","live","msn","ymail","protonmail"];
-const PRODUCTS = ["Seafood", "Fruits", "Agro", "Floriculture", "Poultry"];
+const PRODUCTS = ["Vannamei Shrimp","Tilapia Fillet","Dragon Fruit","Organic Banana","Mango Tommy","Cacao","Other"];
 const VOLUMES = ["Less than 1 ton", "1–5 tons", "5–20 tons", "20–50 tons", "50+ tons"];
 const COUNTRIES = ["Netherlands", "Germany", "Spain", "United States", "China", "Japan", "United Kingdom", "France", "Other"];
 
