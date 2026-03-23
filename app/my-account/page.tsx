@@ -94,7 +94,10 @@ const [addingProduct, setAddingProduct] = useState(false);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { window.location.href = "/access"; return; }
       setUser(user);
-      supabase.from("compradores").select("*").eq("email", user.email).single().then(({ data }) => setProfile(data));
+      supabase.from("compradores").select("*").eq("email", user.email).single().then(({ data }) => {
+        setProfile(data);
+        if (data?.port) localStorage.setItem("surco_user_port", data.port);
+      });
     });
   }, []);
 

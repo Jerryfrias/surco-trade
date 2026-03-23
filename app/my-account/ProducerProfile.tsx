@@ -65,8 +65,11 @@ const [consolStep, setConsolStep] = useState(1);
 const [consolType, setConsolType] = useState<"new"|"join">("new");
 const [consolJoinId, setConsolJoinId] = useState<any>(null);
 const [consolTons, setConsolTons] = useState(1);
-const [consolDest, setConsolDest] = useState("");
+const [consolDest, setConsolDest] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("surco_user_port") || "" : ""
+  );
 const [consolSigned, setConsolSigned] = useState(false);
+const [consolPortWarning, setConsolPortWarning] = useState(false);
 const sigCanvasRef = useRef<HTMLCanvasElement>(null);
 const sigDrawing = useRef(false);
   const TONS = 22000;
@@ -424,7 +427,23 @@ const sigDrawing = useRef(false);
                     <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"12px", lineHeight:1.5 }}><strong style={{ color:"white" }}>14-day window.</strong> {t("If the container isn't filled in 14 days, the consolidation is cancelled — no penalty.","Si el contenedor no se llena en 14 días, la consolidación se cancela sin penalización.")}</div>
                   </div>
 
-                  <button onClick={() => setConsolStep(2)} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                  <button onClick={() => {
+                    const registeredPorts = ["Rotterdam, Netherlands","Hamburg, Germany","Valencia, Spain","Miami, USA","Los Angeles, USA","Shanghai, China","Tokyo, Japan"];
+                    const dest = consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || "Rotterdam, Netherlands";
+                    const isRegistered = registeredPorts.some(p => dest.toLowerCase().includes(p.split(",")[0].toLowerCase()));
+                    if (!isRegistered) { setConsolPortWarning(true); } else { setConsolStep(2); }
+                  }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+
+                  {consolPortWarning && (
+                    <div style={{ marginTop:"12px", background:"rgba(251,146,60,0.08)", border:"0.5px solid rgba(251,146,60,0.25)", borderRadius:"10px", padding:"16px" }}>
+                      <div style={{ color:"white", fontSize:"13px", fontWeight:600, marginBottom:"6px" }}>⚠ {t("Route not yet available","Ruta aún no disponible")}</div>
+                      <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.6, marginBottom:"14px" }}>{t("Your selected port is not yet part of our active routes. Our team will review your request and reach out within 48 hours if we can accommodate this route.","El puerto seleccionado aún no forma parte de nuestras rutas activas. Nuestro equipo revisará tu solicitud y te contactará en 48 horas si podemos incorporar esta ruta.")}</div>
+                      <div style={{ display:"flex", gap:"8px" }}>
+                        <button onClick={() => setConsolPortWarning(false)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"12px", padding:"9px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>{t("Choose another port","Elegir otro puerto")}</button>
+                        <button onClick={() => { setConsolPortWarning(false); setConsolStep(2); }} style={{ flex:1, background:"rgba(251,146,60,0.15)", color:"#fb923c", fontSize:"12px", fontWeight:600, padding:"9px", borderRadius:"50px", border:"0.5px solid rgba(251,146,60,0.3)", cursor:"pointer" }}>{t("Submit anyway","Enviar de todas formas")}</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
