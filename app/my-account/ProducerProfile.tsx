@@ -418,7 +418,7 @@ const sigDrawing = useRef(false);
                   </div>
                   <select onChange={e => { if(e.target.value) { setConsolType("new"); setConsolDest(e.target.value); setConsolJoinId(null); } }} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", marginBottom:"14px", appearance:"none" as const }}>
                     <option value="">{t("Select a different port...","Selecciona otro puerto...")}</option>
-                    {["Valencia, Spain","Hamburg, Germany","Miami, USA","Los Angeles, USA","Shanghai, China","Tokyo, Japan"].map(p => <option key={p}>{p}</option>)}
+                    {["Valencia, Spain","Hamburg, Germany","Miami, USA","Los Angeles, USA","Shanghai, China","Tokyo, Japan"].map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
 
                   {/* 14 days notice */}
