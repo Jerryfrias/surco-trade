@@ -195,7 +195,27 @@ const [selectedTalla, setSelectedTalla] = useState(
           </div>
         </div>
       </div>
+{/* DESCRIPTION + PHOTOS */}
+      {producer.descripcion && (
+        <div style={{ ...card, marginBottom:"16px" }}>
+          <div style={stitle}>{t("About this producer","Sobre este productor")}</div>
+          <p style={{ color:"rgba(255,255,255,0.6)", fontSize:"13px", lineHeight:1.7 }}>{producer.descripcion}</p>
+        </div>
+      )}
 
+      {producer.fotos?.length > 0 && (
+        <div style={{ ...card, marginBottom:"16px" }}>
+          <div style={stitle}>{t("Photos","Fotos")}</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"10px" }}>
+            {producer.fotos.map((foto: string, i: number) => (
+              <div key={i} style={{ borderRadius:"8px", overflow:"hidden", height:"140px", background:"#0a2414" }}>
+                <img src={foto} alt={`${producer.nombre} ${i+1}`} style={{ width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       {/* LOCATION */}
       <div style={{ ...card, marginBottom:"16px" }}>
         <div style={stitle}>{t("Location","Ubicación")}</div>
@@ -296,7 +316,7 @@ const [selectedTalla, setSelectedTalla] = useState(
 
         {/* SAVE TO FAVORITES */}
         <div style={{ borderTop:"0.5px solid rgba(255,255,255,0.07)", paddingTop:"14px", display:"flex", justifyContent:"center" }}>
-          <button onClick={handleSaveConfig} style={{ display:"flex", alignItems:"center", gap:"8px", background: saved ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: saved ? "#4ade80" : "rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, padding:"10px 20px", borderRadius:"50px", border: saved ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)", cursor:"pointer", transition:"all 0.2s" }}>
+          <button id="btn-update-favorite" onClick={handleSaveConfig} style={{ display:"flex", alignItems:"center", gap:"8px", background: saved ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: saved ? "#4ade80" : "rgba(255,255,255,0.5)", fontSize:"12px", fontWeight:500, padding:"10px 20px", borderRadius:"50px", border: saved ? "0.5px solid rgba(74,222,128,0.3)" : "0.5px solid rgba(255,255,255,0.1)", cursor:"pointer", transition:"all 0.2s" }}>
             <span style={{ fontSize:"16px" }}>{saved ? "★" : "☆"}</span>
             {saved 
     ? t("Saved!","¡Guardado!") 
