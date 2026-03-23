@@ -183,7 +183,7 @@ const profileRefs = {
       products: productInterests,
     };
     await supabase.from("compradores").update(updates).eq("email", user?.email);
-    if (ports[0]) localStorage.setItem("surco_user_port", ports[0]);
+    if (ports[0]) { localStorage.setItem("surco_user_port", ports[0]); localStorage.setItem("surco_ports", JSON.stringify(ports)); }
     setProfile((prev: any) => ({ ...prev, ...updates }));
     setProfileSaving(false);
     setProfileSaved(true);
@@ -734,11 +734,11 @@ const profileRefs = {
                     <label style={lbl}>{t("Destination ports","Puertos de destino")}</label>
                     <div style={{ marginTop:"4px" }}>
                       {ports.map((p: string) => (
-                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span onClick={async () => { const updated = ports.filter(x => x !== p); setPorts(updated); localStorage.setItem("surco_ports", JSON.stringify(updated)); if (updated[0]) localStorage.setItem("surco_user_port", updated[0]); else localStorage.removeItem("surco_user_port"); await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email); }} style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
+                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span onClick={() => { const updated = ports.filter(x => x !== p); setPorts(updated); markDirty(); }} style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
                       ))}
                       {addingPort ? (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
-                          <select autoFocus value={newPort} onChange={async e => { const val = e.target.value; if (val) { const updated = [...ports, val]; setPorts(updated); localStorage.setItem("surco_user_port", updated[0]); localStorage.setItem("surco_ports", JSON.stringify(updated)); await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email); setAddingPort(false); setNewPort(""); } else setNewPort(val); }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
+                          <select autoFocus value={newPort} onChange={e => { const val = e.target.value; if (val) { setPorts(prev => [...prev, val]); markDirty(); setAddingPort(false); setNewPort(""); } else setNewPort(val); }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
                             <option value="">{t("Select a port...","Selecciona un puerto...")}</option>
                             {["Europe","Americas","Asia","Middle East"].map(region => (
                               <optgroup key={region} label={region}>
@@ -748,15 +748,13 @@ const profileRefs = {
                               </optgroup>
                             ))}
                           </select>
-                          <span onClick={async () => { 
-  if (newPort.trim()) { 
-    const updated = [...ports, newPort.trim()]; 
-    setPorts(updated); 
-    localStorage.setItem("surco_user_port", updated[0]);
-    await supabase.from("compradores").update({ ports: updated }).eq("email", user?.email);
-    setNewPort(""); 
-  } 
-  setAddingPort(false); 
+                          <span onClick={() => {
+  if (newPort.trim()) {
+    setPorts(prev => [...prev, newPort.trim()]);
+    markDirty();
+    setNewPort("");
+  }
+  setAddingPort(false);
 }} style={{ color:"#4ade80", cursor:"pointer", fontSize:"12px" }}>✓</span>
                         </span>
                       ) : (
@@ -768,11 +766,11 @@ const profileRefs = {
                     <label style={lbl}>{t("Products of interest","Productos de interés")}</label>
                     <div style={{ marginTop:"4px" }}>
                       {productInterests.map((p: string) => (
-                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span onClick={async () => { const updated = productInterests.filter(x => x !== p); setProductInterests(updated); await supabase.from("compradores").update({ products: updated }).eq("email", user?.email); }} style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
+                        <span key={p} style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"11px", padding:"5px 10px", borderRadius:"6px", margin:"3px" }}>{p} <span onClick={() => { setProductInterests(prev => prev.filter(x => x !== p)); markDirty(); }} style={{ cursor:"pointer", opacity:0.6 }}>×</span></span>
                       ))}
                       {addingProduct ? (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:"6px", margin:"3px" }}>
-                          <select autoFocus value={newProduct} onChange={async e => { const val = e.target.value; if (val) { const updated = [...productInterests, val]; setProductInterests(updated); await supabase.from("compradores").update({ products: updated }).eq("email", user?.email); setAddingProduct(false); setNewProduct(""); } else setNewProduct(val); }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
+                          <select autoFocus value={newProduct} onChange={e => { const val = e.target.value; if (val) { setProductInterests(prev => [...prev, val]); markDirty(); setAddingProduct(false); setNewProduct(""); } else setNewProduct(val); }} style={{ background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(74,222,128,0.3)", borderRadius:"6px", padding:"4px 10px", color:"white", fontSize:"11px", outline:"none", minWidth:"200px", appearance:"none" as const }}>
                             <option value="">{t("Select a product...","Selecciona un producto...")}</option>
                             {availableProducts.filter(p => !productInterests.includes(p)).map(p => (
                               <option key={p} value={p}>{p}</option>
