@@ -654,7 +654,7 @@ const profileRefs = {
             )}
 
             {section === "profile" && (
-              <div>
+              <div key={profile?.id ?? "profile-loading"}>
                 <h2 style={{ color:"white", fontSize:"18px", fontWeight:600, marginBottom:"6px" }}>{t("My profile","Mi perfil")}</h2>
                 <p style={{ color:"rgba(255,255,255,0.35)", fontSize:"13px", marginBottom:"20px" }}>{t("Your company and contact information.","Tu empresa e información de contacto.")}</p>
 
