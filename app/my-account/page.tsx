@@ -116,9 +116,7 @@ const profileRefs = {
       supabase.from("puertos").select("*").eq("activo", true).order("region").order("nombre").then(({ data }) => {
         if (data) setAvailablePorts(data);
       });
-      supabase.from("productos").select("nombre").order("nombre").then(({ data }) => {
-        if (data) setAvailableProducts(data.map((p: any) => p.nombre));
-      });
+      setAvailableProducts(allProducts.map(p => p.name));
       supabase.from("compradores").select("*").eq("email", user.email).single().then(({ data }) => {
         setProfile(data);
         if (data?.ports?.length > 0) {

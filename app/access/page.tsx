@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { allProducts } from "../my-account/data";
 
 const BLOCKED_DOMAINS = ["gmail","hotmail","yahoo","outlook","icloud","aol","live","msn","ymail","protonmail"];
 const VOLUMES = ["Less than 1 ton", "1–5 tons", "5–20 tons", "20–50 tons", "50+ tons"];
@@ -38,9 +39,7 @@ export default function AccessPage() {
     supabase.from("puertos").select("*").eq("activo", true).order("region").order("nombre").then(({ data }) => {
       if (data) setAvailablePorts(data);
     });
-    supabase.from("productos").select("nombre").order("nombre").then(({ data }) => {
-      if (data) setAvailableProducts(data.map((p: any) => p.nombre));
-    });
+    setAvailableProducts(allProducts.map(p => p.name));
   }, []);
 
   const validateEmail = (email: string) => {
