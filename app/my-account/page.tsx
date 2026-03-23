@@ -86,6 +86,20 @@ const [newPort, setNewPort] = useState("");
 const [newProduct, setNewProduct] = useState("");
 const [addingPort, setAddingPort] = useState(false);
 const [addingProduct, setAddingProduct] = useState(false);
+
+const [profileSaving, setProfileSaving] = useState(false);
+const [profileSaved, setProfileSaved] = useState(false);
+const profileRefs = {
+    company: useRef<HTMLInputElement>(null),
+    website: useRef<HTMLInputElement>(null),
+    country: useRef<HTMLInputElement>(null),
+    city: useRef<HTMLInputElement>(null),
+    about: useRef<HTMLTextAreaElement>(null),
+    firstName: useRef<HTMLInputElement>(null),
+    lastName: useRef<HTMLInputElement>(null),
+    jobTitle: useRef<HTMLInputElement>(null),
+    whatsapp: useRef<HTMLInputElement>(null),
+  };
   const currentConfigRef = useRef<any>(null);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
@@ -637,7 +651,30 @@ const [addingProduct, setAddingProduct] = useState(false);
                       <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", marginBottom:"3px" }}>{profile?.company}</div>
                       <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"12px" }}>{profile?.country} · {t("Member since Jan 2026","Miembro desde Ene 2026")}</div>
                     </div>
-                    <button style={{ marginLeft:"auto", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"12px", fontWeight:600, padding:"9px 20px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Save changes","Guardar cambios")}</button>
+                    <button onClick={async () => {
+                      setProfileSaving(true);
+                      const updates = {
+                        company: profileRefs.company.current?.value,
+                        website: profileRefs.website.current?.value,
+                        country: profileRefs.country.current?.value,
+                        city: profileRefs.city.current?.value,
+                        about: profileRefs.about.current?.value,
+                        first_name: profileRefs.firstName.current?.value,
+                        last_name: profileRefs.lastName.current?.value,
+                        job_title: profileRefs.jobTitle.current?.value,
+                        whatsapp: profileRefs.whatsapp.current?.value,
+                        ports,
+                        products: productInterests,
+                      };
+                      await supabase.from("compradores").update(updates).eq("email", user?.email);
+                      if (ports[0]) localStorage.setItem("surco_user_port", ports[0]);
+                      setProfile((prev: any) => ({ ...prev, ...updates }));
+                      setProfileSaving(false);
+                      setProfileSaved(true);
+                      setTimeout(() => setProfileSaved(false), 2500);
+                    }} style={{ marginLeft:"auto", background: profileSaved ? "#4ade80" : "rgba(74,222,128,0.12)", color: profileSaved ? "#071a0e" : "#4ade80", fontSize:"12px", fontWeight:600, padding:"9px 20px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer", transition:"all 0.2s" }}>
+                      {profileSaving ? t("Saving...","Guardando...") : profileSaved ? t("Saved ✓","Guardado ✓") : t("Save changes","Guardar cambios")}
+                    </button>
                   </div>
                 </div>
 
@@ -645,20 +682,23 @@ const [addingProduct, setAddingProduct] = useState(false);
                 <div style={{ ...card, marginBottom:"16px" }}>
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Company","Empresa")}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"14px" }}>
-                    {[[t("Company name","Nombre de empresa"), profile?.company||""],[t("Website","Sitio web"), profile?.website||""],[t("Country","País"), profile?.country||""],[t("City","Ciudad"), profile?.city||""]].map(([l, v]) => (
-                      <div key={l}><label style={lbl}>{l}</label><input style={inp} defaultValue={v} /></div>
-                    ))}
+                    <div><label style={lbl}>{t("Company name","Nombre de empresa")}</label><input ref={profileRefs.company} style={inp} defaultValue={profile?.company||""} /></div>
+                      <div><label style={lbl}>{t("Website","Sitio web")}</label><input ref={profileRefs.website} style={inp} defaultValue={profile?.website||""} /></div>
+                      <div><label style={lbl}>{t("Country","País")}</label><input ref={profileRefs.country} style={inp} defaultValue={profile?.country||""} /></div>
+                      <div><label style={lbl}>{t("City","Ciudad")}</label><input ref={profileRefs.city} style={inp} defaultValue={profile?.city||""} /></div>
                   </div>
-                  <div><label style={lbl}>{t("About us","Sobre nosotros")}</label><textarea style={{ ...inp, resize:"vertical", minHeight:"90px", lineHeight:"1.5" } as React.CSSProperties} defaultValue={profile?.about || ""} placeholder={t("Tell producers and the Surco.trade team about your company...","Cuéntale a los productores y al equipo de Surco.trade sobre tu empresa...")} /></div>
+                  <div><label style={lbl}>{t("About us","Sobre nosotros")}</label><textarea ref={profileRefs.about} style={{ ...inp, resize:"vertical", minHeight:"90px", lineHeight:"1.5" } as React.CSSProperties} defaultValue={profile?.about || ""} placeholder={t("Tell producers and the Surco.trade team about your company...","Cuéntale a los productores y al equipo de Surco.trade sobre tu empresa...")} /></div>
                 </div>
 
                 {/* CONTACT */}
                 <div style={{ ...card, marginBottom:"16px" }}>
                   <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"16px" }}>{t("Contact","Contacto")}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
-                    {[[t("First name","Nombre"), profile?.first_name||""],[t("Last name","Apellido"), profile?.last_name||""],[t("Job title","Cargo"), profile?.job_title||""],[t("Email","Correo"), user?.email||""],[t("WhatsApp","WhatsApp"), profile?.whatsapp||""]].map(([l, v]) => (
-                      <div key={l}><label style={lbl}>{l}</label><input style={inp} defaultValue={v} /></div>
-                    ))}
+                    <div><label style={lbl}>{t("First name","Nombre")}</label><input ref={profileRefs.firstName} style={inp} defaultValue={profile?.first_name||""} /></div>
+                      <div><label style={lbl}>{t("Last name","Apellido")}</label><input ref={profileRefs.lastName} style={inp} defaultValue={profile?.last_name||""} /></div>
+                      <div><label style={lbl}>{t("Job title","Cargo")}</label><input ref={profileRefs.jobTitle} style={inp} defaultValue={profile?.job_title||""} /></div>
+                      <div><label style={lbl}>{t("Email","Correo")}</label><input style={inp} defaultValue={user?.email||""} disabled /></div>
+                      <div><label style={lbl}>{t("WhatsApp","WhatsApp")}</label><input ref={profileRefs.whatsapp} style={inp} defaultValue={profile?.whatsapp||""} /></div>
                   </div>
                 </div>
 
