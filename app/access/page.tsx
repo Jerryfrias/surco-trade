@@ -69,9 +69,9 @@ export default function AccessPage() {
     const email = (document.getElementById("reg-email") as HTMLInputElement).value;
     if (!validateEmail(email)) { setLoading(false); return; }
     const password = (document.getElementById("reg-pw") as HTMLInputElement).value;
-    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = signUpData.user;
     if (user) {
       const portArray = selectedPort ? [selectedPort] : [];
       await supabase.from("compradores").insert({
