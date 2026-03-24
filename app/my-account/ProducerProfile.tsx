@@ -62,8 +62,6 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   const [saved, setSaved] = useState(false);
   const [showConsol, setShowConsol] = useState(false);
   const [consolStep, setConsolStep] = useState(1);
-  const [consolType, setConsolType] = useState<"new"|"join">("new");
-  const [consolJoinId, setConsolJoinId] = useState<any>(null);
   const [consolTons, setConsolTons] = useState(1);
   const userPort = typeof window !== "undefined" ? localStorage.getItem("surco_user_port") || "" : "";
   const [consolDest, setConsolDest] = useState(userPort);
@@ -337,7 +335,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
             {/* Modal Header */}
             <div style={{ padding:"24px 28px 0", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div>
-                <div style={{ color:"white", fontSize:"17px", fontWeight:600, marginBottom:"4px" }}>{t("Join or start a consolidation","Unirse o iniciar una consolidación")}</div>
+                <div style={{ color:"white", fontSize:"17px", fontWeight:600, marginBottom:"4px" }}>{t("Start a consolidation","Iniciar una consolidación")}</div>
                 <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{producer.nombre} · Vannamei Shrimp · {selectedTalla?.label} {selectedPres[0]} {selectedProc[0]}</div>
               </div>
               <div onClick={() => setShowConsol(false)} style={{ cursor:"pointer", color:"rgba(255,255,255,0.3)", fontSize:"24px", marginLeft:"16px" }}>×</div>
@@ -365,47 +363,16 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
               {/* STEP 1 — Destination */}
               {consolStep === 1 && (
                 <div>
-                  <div onClick={() => { setConsolType("new"); setConsolJoinId(null); }} style={{ display:"flex", alignItems:"center", gap:"14px", padding:"18px 20px", borderRadius:"10px", cursor:"pointer", marginBottom:"16px", border: consolType === "new" ? "2px solid #4ade80" : "1.5px solid rgba(255,255,255,0.08)", background: consolType === "new" ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.04)" }}>
-                    <div style={{ width:"40px", height:"40px", borderRadius:"10px", background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {userPort && (
+                    <div style={{ background:"rgba(74,222,128,0.06)", border:"0.5px solid rgba(74,222,128,0.15)", borderRadius:"10px", padding:"14px 16px", marginBottom:"16px" }}>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"3px" }}>{t("Your preferred port","Tu puerto preferido")}</div>
+                      <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{userPort}</div>
                     </div>
-                    <div>
-                      <div style={{ color:"white", fontSize:"15px", fontWeight:600, marginBottom:"3px" }}>{t("Start new consolidation","Iniciar nueva consolidación")}</div>
-                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{userPort ? `to ${userPort} · ${t("your preferred port","tu puerto preferido")}` : t("Select a destination port below","Selecciona un puerto de destino abajo")}</div>
-                    </div>
-                  </div>
-
-                  {producer.consolidaciones?.length > 0 && (
-                    <>
-                      <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"14px 0" }}>
-                        <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
-                        <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"11px", whiteSpace:"nowrap" }}>{t("or join an active consolidation","o únete a una consolidación activa")}</span>
-                        <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
-                      </div>
-                      {producer.consolidaciones.map((c: any, i: number) => (
-                        <div key={i} onClick={() => { setConsolType("join"); setConsolJoinId(c); setConsolDest(c.puerto); }} style={{ padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px", border: consolType === "join" && consolJoinId === c ? "2px solid #4ade80" : "0.5px solid rgba(255,255,255,0.08)", background: consolType === "join" && consolJoinId === c ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.04)" }}>
-                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                            <div>
-                              <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"2px" }}>{c.puerto} · {t("Departure","Salida")} {c.fecha}</div>
-                              <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{c.slots}/{c.total} {t("slots filled","slots ocupados")} · {c.total - c.slots} {t("available","disponibles")}</div>
-                            </div>
-                            <span style={{ background: c.status==="open" ? "rgba(74,222,128,0.12)" : "rgba(251,146,60,0.12)", color: c.status==="open" ? "#4ade80" : "#fb923c", fontSize:"10px", padding:"2px 8px", borderRadius:"4px" }}>{c.status==="open" ? "Open" : "Closing"}</span>
-                          </div>
-                          <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:"4px", height:"4px", marginTop:"8px", overflow:"hidden" }}>
-                            <div style={{ background: c.status==="open" ? "#4ade80" : "#fb923c", height:"100%", width:`${Math.round(c.slots/c.total*100)}%`, borderRadius:"4px" }} />
-                          </div>
-                        </div>
-                      ))}
-                    </>
                   )}
 
-                  <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"14px 0" }}>
-                    <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
-                    <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"11px", whiteSpace:"nowrap" }}>{t("or choose a different port","o elige otro puerto")}</span>
-                    <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.08)" }} />
-                  </div>
-                  <select onChange={e => { if(e.target.value) { setConsolType("new"); setConsolDest(e.target.value); setConsolJoinId(null); } }} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", marginBottom:"14px", appearance:"none" as const }}>
-                    <option value="">{t("Select a different port...","Selecciona otro puerto...")}</option>
+                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"8px" }}>{t("Destination port","Puerto de destino")}</div>
+                  <select value={consolDest} onChange={e => setConsolDest(e.target.value)} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", marginBottom:"16px", appearance:"none" as const }}>
+                    <option value="">{t("Select a destination port...","Selecciona un puerto de destino...")}</option>
                     {["Rotterdam, Netherlands","Hamburg, Germany","Valencia, Spain","Antwerp, Belgium","Barcelona, Spain","Felixstowe, UK","Le Havre, France","Genoa, Italy","Miami, USA","Los Angeles, USA","New York, USA","Houston, USA","Shanghai, China","Tokyo, Japan","Osaka, Japan","Busan, South Korea","Singapore, Singapore","Hong Kong, China","Dubai, UAE","Guayaquil, Ecuador"].map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
 
@@ -416,7 +383,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
 
                   <button onClick={() => {
                     const registeredPorts = ["Rotterdam, Netherlands","Hamburg, Germany","Valencia, Spain","Antwerp, Belgium","Barcelona, Spain","Felixstowe, UK","Le Havre, France","Genoa, Italy","Miami, USA","Los Angeles, USA","New York, USA","Houston, USA","Shanghai, China","Tokyo, Japan","Osaka, Japan","Busan, South Korea","Singapore, Singapore","Hong Kong, China","Dubai, UAE","Guayaquil, Ecuador"];
-                    const dest = consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || userPort || "Rotterdam, Netherlands";
+                    const dest = consolDest || userPort || "";
                     const isRegistered = registeredPorts.some(p => dest.toLowerCase().includes(p.split(",")[0].toLowerCase()));
                     if (!isRegistered) { setConsolPortWarning(true); } else { setConsolStep(2); }
                   }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
@@ -439,16 +406,16 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                 <div>
                   <div style={{ background:"rgba(74,222,128,0.06)", border:"0.5px solid rgba(74,222,128,0.15)", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px" }}>
                     <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"3px" }}>{t("Selected destination","Destino seleccionado")}</div>
-                    <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{consolType === "join" && consolJoinId ? `${consolJoinId.puerto} · ${consolJoinId.fecha}` : `${t("New consolidation","Nueva consolidación")} · ${consolDest || userPort || "Rotterdam, Netherlands"}`}</div>
+                    <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{t("New consolidation","Nueva consolidación")} · {consolDest || userPort || "Rotterdam, Netherlands"}</div>
                   </div>
                   <div style={{ marginBottom:"14px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px" }}>
                       <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px" }}>Container · 22 slots</div>
-                      <div style={{ fontSize:"11px", color:"#4ade80" }}>{(consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22) - consolTons} {t("more needed","más necesarios")}</div>
+                      <div style={{ fontSize:"11px", color:"#4ade80" }}>{22 - consolTons} {t("more needed","más necesarios")}</div>
                     </div>
                     <div style={{ display:"grid", gridTemplateColumns:"repeat(11,1fr)", gap:"4px", marginBottom:"8px" }}>
                       {Array.from({length:22}).map((_,i) => {
-                        const f = consolType === "join" && consolJoinId ? consolJoinId.slots : 0;
+                        const f = 0;
                         return (
                           <div key={i} style={{ aspectRatio:"1", borderRadius:"4px", background: i < f ? "rgba(74,222,128,0.2)" : i < f + consolTons ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.04)", border: i < f ? "0.5px solid rgba(74,222,128,0.4)" : i < f + consolTons ? "1.5px solid #4ade80" : "0.5px dashed rgba(255,255,255,0.15)" }} />
                         );
@@ -464,9 +431,9 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                   <div style={{ display:"flex", alignItems:"center", gap:"20px", justifyContent:"center", marginBottom:"6px" }}>
                     <div onClick={() => setConsolTons(Math.max(1, consolTons-1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
                     <div style={{ textAlign:"center" }}><div style={{ color:"white", fontSize:"36px", fontWeight:600 }}>{consolTons}</div><div style={{ color:"rgba(255,255,255,0.3)", fontSize:"12px" }}>tons</div></div>
-                    <div onClick={() => setConsolTons(Math.min(consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22, consolTons+1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
+                    <div onClick={() => setConsolTons(Math.min(22, consolTons+1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
                   </div>
-                  <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", textAlign:"center", marginBottom:"14px" }}>Min. 1 · Max. {consolType === "join" && consolJoinId ? consolJoinId.total - consolJoinId.slots : 22}</div>
+                  <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", textAlign:"center", marginBottom:"14px" }}>Min. 1 · Max. 22</div>
                   <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"14px", marginBottom:"18px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{(consolTons*1000).toLocaleString()} kg × ${selectedTalla?.precio?.toFixed(2)}/kg</span><span style={{ color:"white", fontSize:"12px" }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
                     <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"8px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(consolTons*1000*(selectedTalla?.precio||0)).toLocaleString()}</span></div>
@@ -509,7 +476,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     {[
                       [t("Producer","Productor"), producer.nombre],
                       [t("Product","Producto"), `Vannamei Shrimp · ${selectedTalla?.label} ${selectedPres[0]} ${selectedProc[0]}`],
-                      [t("Destination","Destino"), consolType === "join" && consolJoinId ? consolJoinId.puerto : consolDest || userPort || "Rotterdam, Netherlands"],
+                      [t("Destination","Destino"), consolDest || userPort || "Rotterdam, Netherlands"],
                       [t("Quantity","Cantidad"), `${consolTons} ton${consolTons > 1 ? "s" : ""} · ${consolTons} slots`],
                       [t("Price","Precio"), `$${selectedTalla?.precio?.toFixed(2)}/kg · FOB Guayaquil`],
                     ].map(([l, v]) => (
@@ -556,7 +523,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     <button onClick={() => setConsolStep(4)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
                     <button onClick={async () => {
                       await supabase.from("consolidacion_compradores").insert({
-                        consolidacion_id: consolJoinId?.id || null,
+                        consolidacion_id: null,
                         comprador_email: (await supabase.auth.getUser()).data.user?.email,
                         slots: consolTons,
                         toneladas: consolTons,
