@@ -27,7 +27,11 @@ export default function CatalogPage() {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => { if (data.user) setAuthed(true); });
+    supabase.auth.getSession().then(({ data }) => { if (data.session) setAuthed(true); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

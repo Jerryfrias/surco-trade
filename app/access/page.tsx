@@ -29,11 +29,14 @@ export default function AccessPage() {
   const [addingProductReg, setAddingProductReg] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) window.location.href = "/my-account";
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = "/my-account";
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) window.location.href = "/my-account";
     });
     const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
-    return () => clearInterval(iv);
+    return () => { clearInterval(iv); subscription.unsubscribe(); };
   }, []);
 
   // Cargar puertos desde Supabase al montar
