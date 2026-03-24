@@ -73,9 +73,22 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   const [showReserve, setShowReserve] = useState(false);
   const [reserveStep, setReserveStep] = useState(1);
   const [reserveForm, setReserveForm] = useState({ nombre:"", dni:"", empresa:"", email:"", telefono:"" });
+  const [reserveErrors, setReserveErrors] = useState<Record<string,string>>({});
+  const [reserveDialCode, setReserveDialCode] = useState("+51");
   const [reserveSigned, setReserveSigned] = useState(false);
   const reserveSigRef = useRef<HTMLCanvasElement>(null);
   const reserveSigDrawing = useRef(false);
+  const DIAL_CODES = [
+    { code:"+51", flag:"🇵🇪", name:"Peru" }, { code:"+593", flag:"🇪🇨", name:"Ecuador" },
+    { code:"+57", flag:"🇨🇴", name:"Colombia" }, { code:"+52", flag:"🇲🇽", name:"Mexico" },
+    { code:"+56", flag:"🇨🇱", name:"Chile" }, { code:"+54", flag:"🇦🇷", name:"Argentina" },
+    { code:"+55", flag:"🇧🇷", name:"Brazil" }, { code:"+1", flag:"🇺🇸", name:"USA" },
+    { code:"+44", flag:"🇬🇧", name:"UK" }, { code:"+49", flag:"🇩🇪", name:"Germany" },
+    { code:"+31", flag:"🇳🇱", name:"Netherlands" }, { code:"+34", flag:"🇪🇸", name:"Spain" },
+    { code:"+33", flag:"🇫🇷", name:"France" }, { code:"+39", flag:"🇮🇹", name:"Italy" },
+    { code:"+86", flag:"🇨🇳", name:"China" }, { code:"+81", flag:"🇯🇵", name:"Japan" },
+    { code:"+971", flag:"🇦🇪", name:"UAE" },
+  ];
   const TONS = 22000;
   const FREIGHT = 3200;
   const subtotal = TONS * (selectedTalla?.precio || 0) * qty;
@@ -573,7 +586,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                 <div style={{ color:"white", fontSize:"17px", fontWeight:600, marginBottom:"4px" }}>{t("Reserve full container","Reservar contenedor completo")}</div>
                 <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{producer.nombre} · {selectedTalla?.label} IQF · ${total.toLocaleString()}</div>
               </div>
-              <div onClick={() => { setShowReserve(false); setReserveStep(1); setReserveBio("idle"); }} style={{ cursor:"pointer", color:"rgba(255,255,255,0.3)", fontSize:"24px", marginLeft:"16px" }}>×</div>
+              <div onClick={() => { setShowReserve(false); setReserveStep(1); setReserveErrors({}); }} style={{ cursor:"pointer", color:"rgba(255,255,255,0.3)", fontSize:"24px", marginLeft:"16px" }}>×</div>
             </div>
             <div style={{ padding:"16px 28px 0", display:"flex", alignItems:"center" }}>
               {[1,2,3].map((n,i) => (
@@ -594,18 +607,50 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
               {reserveStep === 1 && (
                 <div>
                   {[
-                    { key:"nombre", label:t("Full name","Nombre completo"), placeholder:"Jerry Frias" },
-                    { key:"dni", label:"DNI / Passport", placeholder:"12345678A" },
-                    { key:"empresa", label:t("Company","Empresa"), placeholder:"Surco.trade S.A." },
-                    { key:"email", label:"Email", placeholder:"jerry@surco.trade" },
-                    { key:"telefono", label:t("Phone","Teléfono"), placeholder:"+51 999 000 000" },
+                    { key:"nombre", label:t("Full name","Nombre completo"), placeholder:"Jerry Frias", type:"text" },
+                    { key:"dni", label:"DNI / Passport", placeholder:"12345678A", type:"text" },
+                    { key:"empresa", label:t("Company","Empresa"), placeholder:"Surco.trade S.A.", type:"text" },
+                    { key:"email", label:"Email", placeholder:"jerry@surco.trade", type:"email" },
                   ].map(f => (
                     <div key={f.key} style={{ marginBottom:"12px" }}>
-                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"5px", textTransform:"uppercase", letterSpacing:"0.5px" }}>{f.label}</div>
-                      <input value={(reserveForm as any)[f.key]} onChange={e => setReserveForm(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" } as React.CSSProperties} />
+                      <div style={{ color: reserveErrors[f.key] ? "#f87171" : "rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"5px", textTransform:"uppercase", letterSpacing:"0.5px" }}>{f.label}{reserveErrors[f.key] && <span style={{ fontWeight:400, textTransform:"none", letterSpacing:0, marginLeft:"6px" }}>— {reserveErrors[f.key]}</span>}</div>
+                      <input
+                        type={f.type}
+                        value={(reserveForm as any)[f.key]}
+                        onChange={e => { setReserveForm(prev => ({ ...prev, [f.key]: e.target.value })); setReserveErrors(prev => ({ ...prev, [f.key]:"" })); }}
+                        placeholder={f.placeholder}
+                        style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:`0.5px solid ${reserveErrors[f.key] ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.12)"}`, borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" } as React.CSSProperties}
+                      />
                     </div>
                   ))}
-                  <button onClick={() => { const { nombre, dni, empresa, email, telefono } = reserveForm; if (nombre && dni && empresa && email && telefono) setReserveStep(2); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"4px" }}>{t("Continue →","Continuar →")}</button>
+                  {/* Phone with dial code */}
+                  <div style={{ marginBottom:"12px" }}>
+                    <div style={{ color: reserveErrors.telefono ? "#f87171" : "rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"5px", textTransform:"uppercase", letterSpacing:"0.5px" }}>{t("Phone","Teléfono")}{reserveErrors.telefono && <span style={{ fontWeight:400, textTransform:"none", letterSpacing:0, marginLeft:"6px" }}>— {reserveErrors.telefono}</span>}</div>
+                    <div style={{ display:"flex", gap:"8px" }}>
+                      <select value={reserveDialCode} onChange={e => setReserveDialCode(e.target.value)} style={{ background:"rgba(255,255,255,0.05)", border:`0.5px solid ${reserveErrors.telefono ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.12)"}`, borderRadius:"8px", padding:"10px 10px", color:"white", fontSize:"13px", outline:"none", cursor:"pointer", flexShrink:0, appearance:"none" as const, minWidth:"90px" }}>
+                        {DIAL_CODES.map(d => <option key={d.code} value={d.code} style={{ background:"#071a0e" }}>{d.flag} {d.code}</option>)}
+                      </select>
+                      <input
+                        type="tel"
+                        value={reserveForm.telefono}
+                        onChange={e => { setReserveForm(prev => ({ ...prev, telefono: e.target.value })); setReserveErrors(prev => ({ ...prev, telefono:"" })); }}
+                        placeholder="999 000 000"
+                        style={{ flex:1, background:"rgba(255,255,255,0.05)", border:`0.5px solid ${reserveErrors.telefono ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.12)"}`, borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none" }}
+                      />
+                    </div>
+                  </div>
+                  <button onClick={() => {
+                    const errs: Record<string,string> = {};
+                    const req = t("Required field","Campo obligatorio");
+                    if (!reserveForm.nombre.trim()) errs.nombre = req;
+                    if (!reserveForm.dni.trim()) errs.dni = req;
+                    if (!reserveForm.empresa.trim()) errs.empresa = req;
+                    if (!reserveForm.email.trim()) errs.email = req;
+                    else if (!/\S+@\S+\.\S+/.test(reserveForm.email)) errs.email = t("Invalid email","Email inválido");
+                    if (!reserveForm.telefono.trim()) errs.telefono = req;
+                    if (Object.keys(errs).length > 0) { setReserveErrors(errs); return; }
+                    setReserveStep(2);
+                  }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"4px" }}>{t("Continue →","Continuar →")}</button>
                 </div>
               )}
 
