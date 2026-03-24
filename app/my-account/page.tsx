@@ -114,8 +114,10 @@ const profileRefs = {
 
   // Browse Join modal
   const [browseJoin, setBrowseJoin] = useState<any | null>(null);
-  const [bjStep, setBjStep] = useState(2);
+  const [bjStep, setBjStep] = useState(1);
   const [bjTons, setBjTons] = useState(1);
+  const [bjName, setBjName] = useState("");
+  const [bjTaxId, setBjTaxId] = useState("");
   const bjSigRef = useRef<HTMLCanvasElement>(null);
   const bjSigDrawing = useRef(false);
 
@@ -508,7 +510,7 @@ const profileRefs = {
                         </div>
                         <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", marginTop:"5px" }}>{c.slots} / {c.total} slots filled</div>
                       </div>
-                      <button disabled={c.status === "full"} onClick={() => { if (c.status !== "full") { setBrowseJoin(c); setBjStep(2); setBjTons(1); } }} style={{ background: c.status === "full" ? "rgba(255,255,255,0.06)" : "#4ade80", color: c.status === "full" ? "rgba(255,255,255,0.25)" : "#071a0e", fontSize:"12px", fontWeight:600, padding:"9px 18px", borderRadius:"50px", border: c.status === "full" ? "0.5px solid rgba(255,255,255,0.08)" : "none", cursor: c.status === "full" ? "not-allowed" : "pointer", whiteSpace:"nowrap" as const }}>
+                      <button disabled={c.status === "full"} onClick={() => { if (c.status !== "full") { setBrowseJoin(c); setBjStep(1); setBjTons(1); setBjName(profile ? `${profile.first_name||""} ${profile.last_name||""}`.trim() : ""); setBjTaxId(profile?.tax_id||""); } }} style={{ background: c.status === "full" ? "rgba(255,255,255,0.06)" : "#4ade80", color: c.status === "full" ? "rgba(255,255,255,0.25)" : "#071a0e", fontSize:"12px", fontWeight:600, padding:"9px 18px", borderRadius:"50px", border: c.status === "full" ? "0.5px solid rgba(255,255,255,0.08)" : "none", cursor: c.status === "full" ? "not-allowed" : "pointer", whiteSpace:"nowrap" as const }}>
                         {c.status === "full" ? "Full" : "Join →"}
                       </button>
                     </div>
@@ -821,8 +823,8 @@ const profileRefs = {
         const bj = browseJoin;
         const price = parseFloat(bj.price.replace("$","").replace("/kg","")) || 0;
         const available = bj.total - bj.slots;
-        const steps = [t("Quantity","Cantidad"), t("Notify","Notificar"), t("Confirm","Confirmar"), t("Sign","Firmar")];
-        const stepNum = bjStep - 1; // 1=Quantity(idx0), 2=Notify(idx1), 3=Confirm(idx2), 4=Sign(idx3)
+        const steps = [t("Quantity","Cantidad"), t("Confirm","Confirmar"), t("Sign","Firmar")];
+        const stepNum = bjStep; // 1=Quantity, 2=Confirm, 3=Sign
         return (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
             <div style={{ background:"#071a0e", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", width:"100%", maxWidth:"500px", maxHeight:"90vh", overflowY:"auto" }}>
@@ -838,12 +840,12 @@ const profileRefs = {
 
               {/* Progress */}
               <div style={{ padding:"16px 28px 0", display:"flex", alignItems:"center" }}>
-                {[1,2,3,4].map((n,i) => (
+                {[1,2,3].map((n,i) => (
                   <React.Fragment key={n}>
                     <div style={{ width:"22px", height:"22px", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", fontWeight:600, flexShrink:0, background: stepNum > n ? "#4ade80" : stepNum === n ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)", border: stepNum === n ? "1.5px solid #4ade80" : "none", color: stepNum > n ? "#071a0e" : stepNum === n ? "#4ade80" : "rgba(255,255,255,0.3)" }}>
                       {stepNum > n ? "✓" : n}
                     </div>
-                    {i < 3 && <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.1)", margin:"0 5px" }} />}
+                    {i < 2 && <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.1)", margin:"0 5px" }} />}
                   </React.Fragment>
                 ))}
               </div>
@@ -855,8 +857,8 @@ const profileRefs = {
 
               <div style={{ padding:"20px 28px 28px" }}>
 
-                {/* STEP 2 — Quantity */}
-                {bjStep === 2 && (
+                {/* STEP 1 — Quantity */}
+                {bjStep === 1 && (
                   <div>
                     <div style={{ background:"rgba(74,222,128,0.06)", border:"0.5px solid rgba(74,222,128,0.15)", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px" }}>
                       <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"3px" }}>{t("Joining","Uniéndose a")}</div>
@@ -890,35 +892,12 @@ const profileRefs = {
                       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{(bjTons*1000).toLocaleString()} kg × {bj.price}</span><span style={{ color:"white", fontSize:"12px" }}>${(bjTons*1000*price).toLocaleString()}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"8px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(bjTons*1000*price).toLocaleString()}</span></div>
                     </div>
-                    <button onClick={() => setBjStep(3)} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
+                    <button onClick={() => setBjStep(2)} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
                   </div>
                 )}
 
-                {/* STEP 3 — Notify */}
-                {bjStep === 3 && (
-                  <div>
-                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("How we'll fill this consolidation","Cómo llenaremos esta consolidación")}</div>
-                    {[
-                      { icon:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.4 1.13 2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.19a16 16 0 006.72 6.72l1.21-1.21a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z", label:"WhatsApp", sub:`~14 buyers with ${bj.port} as preferred port` },
-                      { icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6", label:"Email", sub:`Buyers interested in ${bj.product} → ${bj.port}` },
-                      { icon:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 22V12h6v10", label:"Homepage", sub:"Visible publicly on surco.trade" },
-                    ].map(row => (
-                      <div key={row.label} style={{ display:"flex", alignItems:"center", gap:"12px", padding:"10px 14px", background:"rgba(255,255,255,0.04)", borderRadius:"8px", marginBottom:"6px" }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5"><path d={row.icon}/></svg>
-                        <div style={{ flex:1 }}><div style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{row.label}</div><div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{row.sub}</div></div>
-                        <span style={{ background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"10px", padding:"2px 8px", borderRadius:"4px" }}>Auto</span>
-                      </div>
-                    ))}
-                    <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", padding:"10px 0 18px" }}>🔒 {t("Your company name is shown. Exact tonnage stays private until confirmed.","Tu empresa aparece. La cantidad exacta es privada hasta confirmar.")}</div>
-                    <div style={{ display:"flex", gap:"10px" }}>
-                      <button onClick={() => setBjStep(2)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
-                      <button onClick={() => setBjStep(4)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue →","Continuar →")}</button>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 4 — Confirm */}
-                {bjStep === 4 && (
+                {/* STEP 2 — Confirm + Identity */}
+                {bjStep === 2 && (
                   <div>
                     <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("Review your request","Revisa tu solicitud")}</div>
                     <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"16px", marginBottom:"14px" }}>
@@ -932,23 +911,34 @@ const profileRefs = {
                       ))}
                       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"10px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(bjTons*1000*price).toLocaleString()}</span></div>
                     </div>
+
+                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("Your identity","Tu identidad")}</div>
+                    <div style={{ marginBottom:"10px" }}>
+                      <label style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", display:"block", marginBottom:"5px" }}>{t("Full name","Nombre completo")}</label>
+                      <input value={bjName} onChange={e => setBjName(e.target.value)} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.15)", borderRadius:"8px", padding:"9px 12px", color:"white", fontSize:"13px", boxSizing:"border-box" as const }} />
+                    </div>
+                    <div style={{ marginBottom:"16px" }}>
+                      <label style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", display:"block", marginBottom:"5px" }}>{t("DNI / RUC / Company ID","DNI / RUC / ID de empresa")}</label>
+                      <input value={bjTaxId} onChange={e => setBjTaxId(e.target.value)} placeholder={t("e.g. 1234567890001","ej. 1234567890001")} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.15)", borderRadius:"8px", padding:"9px 12px", color:"white", fontSize:"13px", boxSizing:"border-box" as const }} />
+                    </div>
+
                     <div style={{ background:"rgba(251,146,60,0.07)", border:"0.5px solid rgba(251,146,60,0.18)", borderRadius:"8px", padding:"10px 12px", marginBottom:"14px", display:"flex", gap:"8px", alignItems:"flex-start" }}>
                       <span style={{ color:"#fb923c", flexShrink:0 }}>⚠</span>
-                      <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.5 }}>{t("Reviewed within 24h. Open","Revisado en 24h. Abierto")} <strong style={{ color:"white" }}>14 {t("days","días")}</strong>. {t("Cancellation =","Cancelación =")} <strong style={{ color:"white" }}>20% {t("penalty","penalización")}</strong>. {t("No penalty if container not filled.","Sin penalización si el contenedor no se llena.")}</div>
+                      <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.5 }}>{t("Reviewed within 24h. Cancellation =","Revisado en 24h. Cancelación =")} <strong style={{ color:"white" }}>20% {t("penalty","penalización")}</strong>. {t("No penalty if container not filled.","Sin penalización si el contenedor no se llena.")}</div>
                     </div>
                     <label style={{ display:"flex", alignItems:"flex-start", gap:"10px", cursor:"pointer", marginBottom:"20px" }}>
                       <input type="checkbox" style={{ marginTop:"2px", accentColor:"#4ade80" }} />
                       <span style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.6 }}>{t("I agree to the","Acepto la")} <a href="/terms" target="_blank" style={{ color:"#4ade80" }}>{t("cancellation policy","política de cancelación")}</a> {t("and","y")} <a href="/terms" target="_blank" style={{ color:"#4ade80" }}>{t("terms & conditions","términos y condiciones")}</a>.</span>
                     </label>
                     <div style={{ display:"flex", gap:"10px" }}>
-                      <button onClick={() => setBjStep(3)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
-                      <button onClick={() => setBjStep(5)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue to sign →","Continuar a firmar →")}</button>
+                      <button onClick={() => setBjStep(1)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                      <button onClick={() => setBjStep(3)} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Continue to sign →","Continuar a firmar →")}</button>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 5 — Sign */}
-                {bjStep === 5 && (
+                {/* STEP 3 — Sign */}
+                {bjStep === 3 && (
                   <div>
                     <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("Digital signature","Firma digital")}</div>
                     <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"12px 16px", marginBottom:"14px" }}>
@@ -968,25 +958,27 @@ const profileRefs = {
                     </div>
                     <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", marginBottom:"18px" }}>{t("Valid under","Válido bajo")} <a href="/terms" target="_blank" style={{ color:"rgba(74,222,128,0.6)" }}>eIDAS (Europe) / ESIGN Act (USA)</a>.</div>
                     <div style={{ display:"flex", gap:"10px" }}>
-                      <button onClick={() => setBjStep(4)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                      <button onClick={() => setBjStep(2)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
                       <button onClick={async () => {
                         await supabase.from("consolidacion_compradores").insert({
                           consolidacion_id: bj.id,
                           comprador_email: (await supabase.auth.getUser()).data.user?.email,
+                          nombre: bjName,
+                          tax_id: bjTaxId,
                           slots: bjTons,
                           toneladas: bjTons,
                           valor_estimado: bjTons*1000*price,
                           estado_firma: "signed",
                           fecha_firma: new Date().toISOString(),
                         });
-                        setBjStep(6);
+                        setBjStep(4);
                       }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Submit & sign →","Enviar y firmar →")}</button>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 6 — Success */}
-                {bjStep === 6 && (
+                {/* STEP 4 — Success */}
+                {bjStep === 4 && (
                   <div style={{ textAlign:"center", padding:"16px 0" }}>
                     <div style={{ width:"64px", height:"64px", borderRadius:"50%", background:"rgba(74,222,128,0.15)", border:"2px solid rgba(74,222,128,0.3)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:"28px" }}>✓</div>
                     <div style={{ color:"white", fontSize:"18px", fontWeight:600, marginBottom:"8px" }}>{t("Request submitted!","¡Solicitud enviada!")}</div>
