@@ -30,8 +30,14 @@ export default function AccessPage() {
   const [addingProductReg, setAddingProductReg] = useState(false);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = "/my-account";
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) window.location.href = "/my-account";
+    });
     const iv = setInterval(() => setQuoteIdx(i => (i + 1) % quotes.length), 4500);
-    return () => clearInterval(iv);
+    return () => { clearInterval(iv); subscription.unsubscribe(); };
   }, []);
 
   // Cargar puertos desde Supabase al montar
@@ -68,9 +74,9 @@ export default function AccessPage() {
     const email = (document.getElementById("reg-email") as HTMLInputElement).value;
     if (!validateEmail(email)) { setLoading(false); return; }
     const password = (document.getElementById("reg-pw") as HTMLInputElement).value;
-    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = signUpData.user;
     if (user) {
       const portArray = selectedPort ? [selectedPort] : [];
       await supabase.from("compradores").insert({

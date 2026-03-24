@@ -24,6 +24,15 @@ export default function CatalogPage() {
   const [harvest, setHarvest] = useState("Any time");
   const [sortBy, setSortBy] = useState("Best match");
   const [producers, setProducers] = useState(MOCK);
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { if (data.session) setAuthed(true); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     supabase.from("productores_perfil").select("*")
@@ -68,8 +77,17 @@ export default function CatalogPage() {
           ))}
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "rgba(255,255,255,0.7)", fontSize: "13px", padding: "7px 16px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.2)", cursor: "pointer" }}>Sign in</button>
-          <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "rgba(255,255,255,0.7)", fontSize: "13px", padding: "7px 16px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.2)", cursor: "pointer" }}>Create account</button>
+          {authed ? (
+            <>
+              <button onClick={async () => { await supabase.auth.signOut(); setAuthed(false); }} style={{ background: "transparent", color: "rgba(255,255,255,0.7)", fontSize: "13px", padding: "7px 16px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.2)", cursor: "pointer" }}>Sign out</button>
+              <button onClick={() => window.location.href = "/my-account"} style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "7px 16px", borderRadius: "8px", border: "none", cursor: "pointer" }}>Dashboard</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "rgba(255,255,255,0.7)", fontSize: "13px", padding: "7px 16px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.2)", cursor: "pointer" }}>Sign in</button>
+              <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "rgba(255,255,255,0.7)", fontSize: "13px", padding: "7px 16px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.2)", cursor: "pointer" }}>Create account</button>
+            </>
+          )}
         </div>
       </nav>
 

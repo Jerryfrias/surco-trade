@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const categories = [
   { tag: "Category 01", title: "Aqua-\nculture", sub: "Ecuador · Pacific Coast", desc: "Premium shrimp, tilapia and seafood products farmed under strict quality standards, ready for international export.", products: ["Vannamei Shrimp", "Tilapia", "Black Tiger", "Tuna"], bg: "Aquaculture", label: "Aqua-culture" },
@@ -10,6 +11,15 @@ const categories = [
 
 export default function Home() {
   const [active, setActive] = useState(0);
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { if (data.session) setAuthed(true); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div style={{ background: "#071a0e", minHeight: "100vh", fontFamily: "sans-serif", color: "white" }}>
@@ -55,12 +65,17 @@ export default function Home() {
             <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>English</span>
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>▾</span>
           </div>
-          <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
-  Sign in
-</button>
-<button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>
-  Create account
-</button>
+          {authed ? (
+            <>
+              <button onClick={async () => { await supabase.auth.signOut(); setAuthed(false); }} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>Sign out</button>
+              <button onClick={() => window.location.href = "/my-account"} style={{ background: "#4ade80", color: "#071a0e", fontSize: "13px", fontWeight: 600, padding: "7px 18px", borderRadius: "8px", border: "none", cursor: "pointer" }}>Dashboard</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>Sign in</button>
+              <button onClick={() => window.location.href = "/access"} style={{ background: "transparent", color: "white", fontSize: "13px", fontWeight: 500, padding: "7px 18px", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer" }}>Create account</button>
+            </>
+          )}
         </div>
       </nav>
 
