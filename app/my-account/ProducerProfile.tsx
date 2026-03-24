@@ -314,7 +314,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
             ) : (
               <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px", marginBottom:"14px" }}>{t("No active consolidations. Be the first to start one.","No hay consolidaciones activas. Sé el primero en iniciar una.")}</div>
             )}
-            <button onClick={() => { setShowConsol(true); setConsolStep(1); setConsolType("new"); setConsolDest(userPort || producer.consolidaciones?.[0]?.puerto || "Rotterdam, Netherlands"); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Start / join consolidation →","Iniciar / unirse a consolidación →")}</button>
+            <button onClick={() => { setShowConsol(true); setConsolStep(1); setConsolDest(userPort || "Rotterdam, Netherlands"); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Start a consolidation →","Iniciar una consolidación →")}</button>
           </div>
         )}
 
