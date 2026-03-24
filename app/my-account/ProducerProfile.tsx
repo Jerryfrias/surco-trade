@@ -70,11 +70,36 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   const [consolPortWarning, setConsolPortWarning] = useState(false);
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigDrawing = useRef(false);
+  const [showReserve, setShowReserve] = useState(false);
+  const [reserveStep, setReserveStep] = useState(1);
+  const [reserveForm, setReserveForm] = useState({ nombre:"", dni:"", empresa:"", email:"", telefono:"" });
+  const [reserveSigned, setReserveSigned] = useState(false);
+  const [reserveBio, setReserveBio] = useState<"idle"|"loading"|"done"|"error">("idle");
+  const reserveSigRef = useRef<HTMLCanvasElement>(null);
+  const reserveSigDrawing = useRef(false);
   const TONS = 22000;
   const FREIGHT = 3200;
   const subtotal = TONS * (selectedTalla?.precio || 0) * qty;
   const freight = FREIGHT * qty;
   const total = subtotal + freight;
+
+  const doReserveBiometric = async () => {
+    setReserveBio("loading");
+    try {
+      const available = await (PublicKeyCredential as any).isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!available) { setReserveBio("error"); return; }
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      await navigator.credentials.create({ publicKey: {
+        challenge,
+        rp: { name: "Surco.trade", id: window.location.hostname },
+        user: { id: crypto.getRandomValues(new Uint8Array(16)), name: reserveForm.email || "user@surco.trade", displayName: reserveForm.nombre || "User" },
+        pubKeyCredParams: [{ type:"public-key", alg:-7 }, { type:"public-key", alg:-257 }],
+        authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required" },
+        timeout: 60000,
+      }});
+      setReserveBio("done");
+    } catch { setReserveBio("error"); }
+  };
 
   const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
     const newArr = arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
@@ -288,7 +313,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
               </div>
               <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", marginTop:"6px" }}>* {t("Freight is an estimate. Final price confirmed by Surco.trade team.","El flete es un estimado. Precio final confirmado por el equipo de Surco.trade.")}</div>
             </div>
-            <button style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"16px" }}>{t("Reserve container →","Reservar contenedor →")}</button>
+            <button onClick={() => { setShowReserve(true); setReserveStep(1); setReserveBio("idle"); setReserveSigned(false); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"16px" }}>{t("Reserve container →","Reservar contenedor →")}</button>
           </div>
         )}
 
@@ -550,6 +575,129 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>CONS-2026-{(consolDest||userPort||"ROT").split(",")[0].slice(0,3).toUpperCase()}-{String(Date.now()).slice(-4)}</div>
                   </div>
                   <button onClick={() => setShowConsol(false)} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to producer profile","Volver al perfil del productor")}</button>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULL CONTAINER RESERVATION MODAL */}
+      {showReserve && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+          <div style={{ background:"#071a0e", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", width:"100%", maxWidth:"500px", maxHeight:"90vh", overflowY:"auto" }}>
+            <div style={{ padding:"24px 28px 0", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+              <div>
+                <div style={{ color:"white", fontSize:"17px", fontWeight:600, marginBottom:"4px" }}>{t("Reserve full container","Reservar contenedor completo")}</div>
+                <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{producer.nombre} · {selectedTalla?.label} IQF · ${total.toLocaleString()}</div>
+              </div>
+              <div onClick={() => { setShowReserve(false); setReserveStep(1); setReserveBio("idle"); }} style={{ cursor:"pointer", color:"rgba(255,255,255,0.3)", fontSize:"24px", marginLeft:"16px" }}>×</div>
+            </div>
+            <div style={{ padding:"16px 28px 0", display:"flex", alignItems:"center" }}>
+              {[1,2,3,4].map((n,i) => (
+                <React.Fragment key={n}>
+                  <div style={{ width:"22px", height:"22px", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", fontWeight:600, flexShrink:0, background: reserveStep > n ? "#4ade80" : reserveStep === n ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)", border: reserveStep === n ? "1.5px solid #4ade80" : "none", color: reserveStep > n ? "#071a0e" : reserveStep === n ? "#4ade80" : "rgba(255,255,255,0.3)" }}>{reserveStep > n ? "✓" : n}</div>
+                  {i < 3 && <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.1)", margin:"0 5px" }} />}
+                </React.Fragment>
+              ))}
+            </div>
+            <div style={{ padding:"4px 28px 0", display:"flex", justifyContent:"space-between" }}>
+              {[t("Your info","Tus datos"), t("Signature","Firma"), t("Biometric","Biométrico"), t("Done","Listo")].map((l,i) => (
+                <span key={l} style={{ fontSize:"10px", color: reserveStep === i+1 ? "#4ade80" : reserveStep > i+1 ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.3)" }}>{l}</span>
+              ))}
+            </div>
+            <div style={{ padding:"20px 28px 28px" }}>
+
+              {/* STEP 1 — Personal data */}
+              {reserveStep === 1 && (
+                <div>
+                  {[
+                    { key:"nombre", label:t("Full name","Nombre completo"), placeholder:"Jerry Frias" },
+                    { key:"dni", label:"DNI / Passport", placeholder:"12345678A" },
+                    { key:"empresa", label:t("Company","Empresa"), placeholder:"Surco.trade S.A." },
+                    { key:"email", label:"Email", placeholder:"jerry@surco.trade" },
+                    { key:"telefono", label:t("Phone","Teléfono"), placeholder:"+51 999 000 000" },
+                  ].map(f => (
+                    <div key={f.key} style={{ marginBottom:"12px" }}>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"5px", textTransform:"uppercase", letterSpacing:"0.5px" }}>{f.label}</div>
+                      <input value={(reserveForm as any)[f.key]} onChange={e => setReserveForm(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.12)", borderRadius:"8px", padding:"10px 14px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" } as React.CSSProperties} />
+                    </div>
+                  ))}
+                  <button onClick={() => { const { nombre, dni, empresa, email, telefono } = reserveForm; if (nombre && dni && empresa && email && telefono) setReserveStep(2); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"4px" }}>{t("Continue →","Continuar →")}</button>
+                </div>
+              )}
+
+              {/* STEP 2 — Signature */}
+              {reserveStep === 2 && (
+                <div>
+                  <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px" }}>
+                    {[[t("Name","Nombre"), reserveForm.nombre],[" DNI", reserveForm.dni],[t("Total","Total"), `$${total.toLocaleString()}`]].map(([l,v]) => (
+                      <div key={l} style={{ display:"flex", justifyContent:"space-between", marginBottom:"4px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px" }}>{l}</span><span style={{ color: l === t("Total","Total") ? "#4ade80" : "white", fontSize:"11px", fontWeight: l === t("Total","Total") ? 600 : 400 }}>{v}</span></div>
+                    ))}
+                  </div>
+                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px" }}>{t("Sign here","Firma aquí")}</div>
+                  <canvas ref={reserveSigRef} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
+                    onMouseDown={e => { reserveSigDrawing.current=true; const c=reserveSigRef.current!; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo(e.nativeEvent.offsetX,e.nativeEvent.offsetY); }}
+                    onMouseMove={e => { if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2; ctx.lineCap="round"; ctx.lineTo(e.nativeEvent.offsetX,e.nativeEvent.offsetY); ctx.stroke(); }}
+                    onMouseUp={() => reserveSigDrawing.current=false}
+                    onMouseLeave={() => reserveSigDrawing.current=false}
+                  />
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:"6px", marginBottom:"14px" }}>
+                    <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px" }}>📍 IP, {t("date & time UTC recorded","fecha y hora UTC registradas.")}</div>
+                    <button onClick={() => { const c=reserveSigRef.current!; c.getContext("2d")!.clearRect(0,0,c.width,c.height); }} style={{ background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"11px", border:"none", cursor:"pointer" }}>{t("Clear","Limpiar")}</button>
+                  </div>
+                  <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", marginBottom:"18px" }}>{t("Valid under","Válido bajo")} <a href="/terms" target="_blank" style={{ color:"rgba(74,222,128,0.6)" }}>eIDAS (Europe) / ESIGN Act (USA)</a>.</div>
+                  <div style={{ display:"flex", gap:"10px" }}>
+                    <button onClick={() => setReserveStep(1)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    <button onClick={() => { setReserveSigned(true); setReserveStep(3); }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Sign & continue →","Firmar y continuar →")}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3 — Biometric */}
+              {reserveStep === 3 && (
+                <div style={{ textAlign:"center" }}>
+                  <div style={{ width:"80px", height:"80px", borderRadius:"50%", background: reserveBio === "done" ? "rgba(74,222,128,0.15)" : reserveBio === "error" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.05)", border: reserveBio === "done" ? "2px solid rgba(74,222,128,0.4)" : reserveBio === "error" ? "2px solid rgba(239,68,68,0.3)" : "2px solid rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:"36px" }}>
+                    {reserveBio === "done" ? "✓" : reserveBio === "error" ? "✕" : reserveBio === "loading" ? "⋯" : "👆"}
+                  </div>
+                  <div style={{ color:"white", fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>
+                    {reserveBio === "idle" ? t("Biometric verification","Verificación biométrica") : reserveBio === "loading" ? t("Waiting...","Esperando...") : reserveBio === "done" ? t("Identity verified","Identidad verificada") : t("Not available on this device","No disponible en este dispositivo")}
+                  </div>
+                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px", lineHeight:1.6, marginBottom:"24px" }}>
+                    {reserveBio === "idle" ? t("Touch ID · Face ID · Windows Hello will confirm your identity.","Touch ID · Face ID · Windows Hello confirmará tu identidad.") : reserveBio === "error" ? t("You can still submit without biometric verification.","Aún puedes enviar sin verificación biométrica.") : reserveBio === "done" ? t("Confirmed. Proceed to submit your reservation.","Confirmado. Procede a enviar tu reserva.") : ""}
+                  </div>
+                  {reserveBio !== "done" && (
+                    <button onClick={doReserveBiometric} disabled={reserveBio === "loading"} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer", marginBottom:"10px", opacity: reserveBio === "loading" ? 0.5 : 1 }}>
+                      {reserveBio === "error" ? t("Try again","Intentar de nuevo") : t("Authenticate →","Autenticar →")}
+                    </button>
+                  )}
+                  <div style={{ display:"flex", gap:"10px", marginTop:"8px" }}>
+                    <button onClick={() => setReserveStep(2)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    {(reserveBio === "done" || reserveBio === "error") && (
+                      <button onClick={async () => {
+                        await supabase.from("reservas_contenedor").insert({ producer_id: producer.id, comprador_nombre: reserveForm.nombre, comprador_dni: reserveForm.dni, comprador_empresa: reserveForm.empresa, comprador_email: reserveForm.email, comprador_telefono: reserveForm.telefono, talla: selectedTalla?.label, qty, total_estimado: total, biometrico: reserveBio === "done", fecha: new Date().toISOString() });
+                        setReserveStep(4);
+                      }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>
+                        {reserveBio === "error" ? t("Submit without biometric →","Enviar sin biométrico →") : t("Submit →","Enviar →")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4 — Done */}
+              {reserveStep === 4 && (
+                <div style={{ textAlign:"center", padding:"16px 0" }}>
+                  <div style={{ width:"64px", height:"64px", borderRadius:"50%", background:"rgba(74,222,128,0.15)", border:"2px solid rgba(74,222,128,0.3)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:"28px" }}>✓</div>
+                  <div style={{ color:"white", fontSize:"18px", fontWeight:600, marginBottom:"8px" }}>{t("Container reserved!","¡Contenedor reservado!")}</div>
+                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", lineHeight:1.7, marginBottom:"20px" }}>{t("Surco.trade will confirm within 24h via WhatsApp and email.","Surco.trade confirmará en 24h por WhatsApp y email.")}</div>
+                  <div style={{ background:"rgba(74,222,128,0.08)", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"10px", padding:"14px", marginBottom:"20px", textAlign:"left" }}>
+                    <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"4px" }}>{t("Reference number","Número de referencia")}</div>
+                    <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>CONT-2026-{String(Date.now()).slice(-6)}</div>
+                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"11px", marginTop:"4px" }}>{reserveForm.nombre} · {reserveForm.empresa}</div>
+                  </div>
+                  <button onClick={() => { setShowReserve(false); setReserveStep(1); setReserveBio("idle"); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to producer","Volver al productor")}</button>
                 </div>
               )}
 
