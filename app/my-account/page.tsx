@@ -876,13 +876,22 @@ const profileRefs = {
                         </div>
                       ))}
                     </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(11,1fr)", gap:"4px", marginBottom:"8px" }}>
+                      {Array.from({length:22}).map((_,i) => (
+                        <div key={i} style={{ aspectRatio:"1", borderRadius:"4px", background: i < bj.slots ? "rgba(74,222,128,0.2)" : i < bj.slots + bjTons ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.04)", border: i < bj.slots ? "0.5px solid rgba(74,222,128,0.4)" : i < bj.slots + bjTons ? "1.5px solid #4ade80" : "0.5px dashed rgba(255,255,255,0.15)" }} />
+                      ))}
+                    </div>
+                    <div style={{ display:"flex", gap:"14px", fontSize:"10px", color:"rgba(255,255,255,0.3)", marginBottom:"16px" }}>
+                      <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(74,222,128,0.2)", border:"0.5px solid rgba(74,222,128,0.4)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Filled","Ocupados")}</span>
+                      <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(74,222,128,0.6)", border:"1.5px solid #4ade80", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Yours","Tuyos")}</span>
+                      <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px dashed rgba(255,255,255,0.15)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Available","Disponibles")}</span>
+                    </div>
                     <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("How many tons do you want to reserve?","¿Cuántas toneladas quieres reservar?")}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:"20px", justifyContent:"center", marginBottom:"6px" }}>
                       <div onClick={() => setBjTons(Math.max(1, bjTons-1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
                       <div style={{ textAlign:"center" }}><div style={{ color:"white", fontSize:"36px", fontWeight:600 }}>{bjTons}</div><div style={{ color:"rgba(255,255,255,0.3)", fontSize:"12px" }}>tons</div></div>
                       <div onClick={() => setBjTons(Math.min(available, bjTons+1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>+</div>
                     </div>
-                    <div style={{ color:"rgba(255,255,255,0.25)", fontSize:"11px", textAlign:"center", marginBottom:"14px" }}>Min. 1 · Max. {available}</div>
                     <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"14px", marginBottom:"18px" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{(bjTons*1000).toLocaleString()} kg × {bj.price}</span><span style={{ color:"white", fontSize:"12px" }}>${(bjTons*1000*price).toLocaleString()}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"8px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(bjTons*1000*price).toLocaleString()}</span></div>
