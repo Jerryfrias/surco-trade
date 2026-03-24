@@ -662,18 +662,19 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     {reserveBio === "done" ? "✓" : reserveBio === "error" ? "✕" : reserveBio === "loading" ? "⋯" : "👆"}
                   </div>
                   <div style={{ color:"white", fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>
-                    {reserveBio === "idle" ? t("Biometric verification","Verificación biométrica") : reserveBio === "loading" ? t("Waiting...","Esperando...") : reserveBio === "done" ? t("Identity verified","Identidad verificada") : t("Not available on this device","No disponible en este dispositivo")}
+                    {reserveBio === "idle" ? t("Biometric verification","Verificación biométrica") : reserveBio === "loading" ? t("Waiting for Touch ID...","Esperando Touch ID...") : reserveBio === "done" ? t("Identity verified","Identidad verificada") : t("Not available on this device","No disponible en este dispositivo")}
                   </div>
                   <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px", lineHeight:1.6, marginBottom:"24px" }}>
-                    {reserveBio === "idle" ? t("Touch ID · Face ID · Windows Hello will confirm your identity.","Touch ID · Face ID · Windows Hello confirmará tu identidad.") : reserveBio === "error" ? t("You can still submit without biometric verification.","Aún puedes enviar sin verificación biométrica.") : reserveBio === "done" ? t("Confirmed. Proceed to submit your reservation.","Confirmado. Procede a enviar tu reserva.") : ""}
+                    {reserveBio === "idle" ? t("Touch ID · Face ID · Windows Hello will confirm your identity.","Touch ID · Face ID · Windows Hello confirmará tu identidad.") : reserveBio === "loading" ? t("Check your device for the Touch ID / Face ID prompt.","Revisa tu dispositivo para el prompt de Touch ID / Face ID.") : reserveBio === "error" ? t("You can still submit without biometric verification.","Aún puedes enviar sin verificación biométrica.") : t("Confirmed. Proceed to submit your reservation.","Confirmado. Procede a enviar tu reserva.")}
                   </div>
                   {reserveBio !== "done" && (
-                    <button onClick={doReserveBiometric} disabled={reserveBio === "loading"} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer", marginBottom:"10px", opacity: reserveBio === "loading" ? 0.5 : 1 }}>
-                      {reserveBio === "error" ? t("Try again","Intentar de nuevo") : t("Authenticate →","Autenticar →")}
+                    <button onClick={doReserveBiometric} disabled={reserveBio === "loading"} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor: reserveBio === "loading" ? "not-allowed" : "pointer", marginBottom:"10px", opacity: reserveBio === "loading" ? 0.4 : 1 }}>
+                      {reserveBio === "loading" ? t("Waiting...","Esperando...") : reserveBio === "error" ? t("Try again","Intentar de nuevo") : t("Authenticate →","Autenticar →")}
                     </button>
                   )}
                   <div style={{ display:"flex", gap:"10px", marginTop:"8px" }}>
-                    <button onClick={() => setReserveStep(2)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
+                    {reserveBio !== "loading" && <button onClick={() => { setReserveBio("idle"); setReserveStep(2); }} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>}
+                    {reserveBio === "loading" && <button onClick={() => setReserveBio("error")} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.4)", fontSize:"12px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.1)", cursor:"pointer" }}>{t("Cancel","Cancelar")}</button>}
                     {(reserveBio === "done" || reserveBio === "error") && (
                       <button onClick={async () => {
                         await supabase.from("reservas_contenedor").insert({ producer_id: producer.id, comprador_nombre: reserveForm.nombre, comprador_dni: reserveForm.dni, comprador_empresa: reserveForm.empresa, comprador_email: reserveForm.email, comprador_telefono: reserveForm.telefono, talla: selectedTalla?.label, qty, total_estimado: total, biometrico: reserveBio === "done", fecha: new Date().toISOString() });
@@ -683,6 +684,12 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                       </button>
                     )}
                   </div>
+                  {(reserveBio === "idle" || reserveBio === "error") && (
+                    <button onClick={async () => {
+                      await supabase.from("reservas_contenedor").insert({ producer_id: producer.id, comprador_nombre: reserveForm.nombre, comprador_dni: reserveForm.dni, comprador_empresa: reserveForm.empresa, comprador_email: reserveForm.email, comprador_telefono: reserveForm.telefono, talla: selectedTalla?.label, qty, total_estimado: total, biometrico: false, fecha: new Date().toISOString() });
+                      setReserveStep(4);
+                    }} style={{ marginTop:"12px", background:"transparent", color:"rgba(255,255,255,0.25)", fontSize:"11px", border:"none", cursor:"pointer", textDecoration:"underline" }}>{t("Skip biometric and submit","Omitir biométrico y enviar")}</button>
+                  )}
                 </div>
               )}
 
