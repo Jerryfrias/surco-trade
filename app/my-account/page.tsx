@@ -395,6 +395,14 @@ const profileRefs = {
             onSaveConfig={(config) => { saveConfig(config); clearDirty(); currentConfigRef.current = config; }}
             onConfigChange={(config) => { currentConfigRef.current = config; }}
             onDirty={() => markDirty()}
+            onJoin={(c) => {
+              const talla = selectedProducer?.config?.talla || selectedProducer?.tallas?.[0];
+              const price = talla?.precio ? `$${talla.precio}/kg` : "$4.20/kg";
+              setBrowseJoin({ id:`CONS-${c.puerto?.split(",")[0].toUpperCase().replace(" ","")}-${c.fecha?.replace(" ","")}`, product: selectedProductPage || "Vannamei Shrimp", port: c.puerto, price, departure: c.fecha, slots: c.slots, total: c.total, status: c.status });
+              setBjStep(1); setBjTons(1);
+              setBjName(profile ? `${profile.first_name||""} ${profile.last_name||""}`.trim() : "");
+              setBjTaxId(profile?.tax_id || "");
+            }}
             lang={lang}
           />
         )}
