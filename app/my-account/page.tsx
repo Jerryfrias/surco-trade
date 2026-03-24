@@ -823,7 +823,7 @@ const profileRefs = {
         const bj = browseJoin;
         const price = parseFloat(bj.price.replace("$","").replace("/kg","")) || 0;
         const available = bj.total - bj.slots;
-        const steps = [t("Quantity","Cantidad"), t("Confirm","Confirmar"), t("Sign","Firmar")];
+        const steps = [t("Quantity","Cantidad"), t("Your details","Tus datos"), t("Sign","Firmar")];
         const stepNum = bjStep; // 1=Quantity, 2=Confirm, 3=Sign
         return (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
@@ -857,31 +857,26 @@ const profileRefs = {
 
               <div style={{ padding:"20px 28px 28px" }}>
 
-                {/* STEP 1 — Quantity */}
+                {/* STEP 1 — Overview + Quantity */}
                 {bjStep === 1 && (
                   <div>
-                    <div style={{ background:"rgba(74,222,128,0.06)", border:"0.5px solid rgba(74,222,128,0.15)", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px" }}>
-                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"3px" }}>{t("Joining","Uniéndose a")}</div>
-                      <div style={{ color:"white", fontSize:"14px", fontWeight:500 }}>{bj.port} · {t("Departure","Salida")} {bj.departure}</div>
-                      <div style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px", marginTop:"2px" }}>{bj.slots}/{bj.total} {t("slots filled","slots ocupados")} · {available} {t("available","disponibles")}</div>
+                    <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"13px", lineHeight:1.6, marginBottom:"16px" }}>
+                      {t("You're reserving space in a shared container heading to","Estás reservando espacio en un contenedor compartido con destino a")} <strong style={{ color:"white" }}>{bj.port}</strong>. {t("You only pay for the tons you take — no need to fill the whole container.","Solo pagas por las toneladas que tomes — sin necesidad de llenar todo el contenedor.")}
                     </div>
-                    <div style={{ marginBottom:"14px" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px" }}>
-                        <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px" }}>Container · 22 slots</div>
-                        <div style={{ fontSize:"11px", color:"#4ade80" }}>{available - bjTons} {t("more needed","más necesarios")}</div>
-                      </div>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(11,1fr)", gap:"4px", marginBottom:"8px" }}>
-                        {Array.from({length:22}).map((_,i) => (
-                          <div key={i} style={{ aspectRatio:"1", borderRadius:"4px", background: i < bj.slots ? "rgba(74,222,128,0.2)" : i < bj.slots + bjTons ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.04)", border: i < bj.slots ? "0.5px solid rgba(74,222,128,0.4)" : i < bj.slots + bjTons ? "1.5px solid #4ade80" : "0.5px dashed rgba(255,255,255,0.15)" }} />
-                        ))}
-                      </div>
-                      <div style={{ display:"flex", gap:"14px", fontSize:"10px", color:"rgba(255,255,255,0.3)" }}>
-                        <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(74,222,128,0.2)", border:"0.5px solid rgba(74,222,128,0.4)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Filled","Ocupados")}</span>
-                        <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(74,222,128,0.6)", border:"1.5px solid #4ade80", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Yours","Tuyos")}</span>
-                        <span><span style={{ display:"inline-block", width:"8px", height:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px dashed rgba(255,255,255,0.15)", borderRadius:"2px", marginRight:"4px", verticalAlign:"middle" }}></span>{t("Available","Disponibles")}</span>
-                      </div>
+                    <div style={{ background:"rgba(255,255,255,0.03)", border:"0.5px solid rgba(255,255,255,0.08)", borderRadius:"10px", padding:"14px 16px", marginBottom:"16px" }}>
+                      {[
+                        [t("Product","Producto"), bj.product],
+                        [t("Destination","Destino"), `${bj.port} · ${t("Departure","Salida")} ${bj.departure}`],
+                        [t("Price","Precio"), `${bj.price} · FOB Guayaquil`],
+                        [t("Availability","Disponibilidad"), `${available} ${t("of","de")} ${bj.total} ${t("slots open","slots disponibles")}`],
+                      ].map(([l,v]) => (
+                        <div key={l} style={{ display:"flex", justifyContent:"space-between", marginBottom:"6px" }}>
+                          <span style={{ color:"rgba(255,255,255,0.35)", fontSize:"12px" }}>{l}</span>
+                          <span style={{ color:"white", fontSize:"12px" }}>{v}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("How many tons?","¿Cuántas toneladas?")}</div>
+                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("How many tons do you want to reserve?","¿Cuántas toneladas quieres reservar?")}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:"20px", justifyContent:"center", marginBottom:"6px" }}>
                       <div onClick={() => setBjTons(Math.max(1, bjTons-1))} style={{ width:"40px", height:"40px", borderRadius:"8px", border:"0.5px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:"20px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>−</div>
                       <div style={{ textAlign:"center" }}><div style={{ color:"white", fontSize:"36px", fontWeight:600 }}>{bjTons}</div><div style={{ color:"rgba(255,255,255,0.3)", fontSize:"12px" }}>tons</div></div>
@@ -896,32 +891,24 @@ const profileRefs = {
                   </div>
                 )}
 
-                {/* STEP 2 — Confirm + Identity */}
+                {/* STEP 2 — Buyer details */}
                 {bjStep === 2 && (
                   <div>
-                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"12px" }}>{t("Review your request","Revisa tu solicitud")}</div>
-                    <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:"10px", padding:"16px", marginBottom:"14px" }}>
-                      {[
-                        [t("Product","Producto"), bj.product],
-                        [t("Destination","Destino"), `${bj.port} · ${t("Departure","Salida")} ${bj.departure}`],
-                        [t("Quantity","Cantidad"), `${bjTons} ton${bjTons > 1 ? "s" : ""} · ${bjTons} slots`],
-                        [t("Price","Precio"), `${bj.price} · FOB Guayaquil`],
-                      ].map(([l, v]) => (
-                        <div key={l} style={{ display:"flex", justifyContent:"space-between", marginBottom:"7px" }}><span style={{ color:"rgba(255,255,255,0.4)", fontSize:"12px" }}>{l}</span><span style={{ color:"white", fontSize:"12px" }}>{v}</span></div>
-                      ))}
-                      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:"10px", borderTop:"0.5px solid rgba(255,255,255,0.07)" }}><span style={{ color:"white", fontSize:"13px", fontWeight:500 }}>{t("Estimated total","Total estimado")}</span><span style={{ color:"#4ade80", fontSize:"16px", fontWeight:600 }}>${(bjTons*1000*price).toLocaleString()}</span></div>
+                    <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"13px", lineHeight:1.6, marginBottom:"16px" }}>
+                      {t("These details will appear on your order documents. Make sure they match your official records.","Estos datos aparecerán en tus documentos de orden. Asegúrate de que coincidan con tus registros oficiales.")}
                     </div>
-
-                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"1px", marginBottom:"10px" }}>{t("Your identity","Tu identidad")}</div>
-                    <div style={{ marginBottom:"10px" }}>
+                    <div style={{ marginBottom:"12px" }}>
                       <label style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", display:"block", marginBottom:"5px" }}>{t("Full name","Nombre completo")}</label>
-                      <input value={bjName} onChange={e => setBjName(e.target.value)} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.15)", borderRadius:"8px", padding:"9px 12px", color:"white", fontSize:"13px", boxSizing:"border-box" as const }} />
+                      <input value={bjName} onChange={e => setBjName(e.target.value)} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.15)", borderRadius:"8px", padding:"10px 12px", color:"white", fontSize:"13px", boxSizing:"border-box" as const }} />
                     </div>
                     <div style={{ marginBottom:"16px" }}>
                       <label style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", display:"block", marginBottom:"5px" }}>{t("DNI / RUC / Company ID","DNI / RUC / ID de empresa")}</label>
-                      <input value={bjTaxId} onChange={e => setBjTaxId(e.target.value)} placeholder={t("e.g. 1234567890001","ej. 1234567890001")} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.15)", borderRadius:"8px", padding:"9px 12px", color:"white", fontSize:"13px", boxSizing:"border-box" as const }} />
+                      <input value={bjTaxId} onChange={e => setBjTaxId(e.target.value)} placeholder={t("e.g. 1234567890001","ej. 1234567890001")} style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"0.5px solid rgba(255,255,255,0.15)", borderRadius:"8px", padding:"10px 12px", color:"white", fontSize:"13px", boxSizing:"border-box" as const }} />
                     </div>
-
+                    <div style={{ background:"rgba(255,255,255,0.03)", border:"0.5px solid rgba(255,255,255,0.07)", borderRadius:"8px", padding:"10px 14px", marginBottom:"14px" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"4px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{bj.product} → {bj.port}</span><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Departure","Salida")} {bj.departure}</span></div>
+                      <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{bjTons} ton{bjTons > 1 ? "s" : ""} · {bj.price}</span><span style={{ color:"#4ade80", fontSize:"12px", fontWeight:600 }}>${(bjTons*1000*price).toLocaleString()}</span></div>
+                    </div>
                     <div style={{ background:"rgba(251,146,60,0.07)", border:"0.5px solid rgba(251,146,60,0.18)", borderRadius:"8px", padding:"10px 12px", marginBottom:"14px", display:"flex", gap:"8px", alignItems:"flex-start" }}>
                       <span style={{ color:"#fb923c", flexShrink:0 }}>⚠</span>
                       <div style={{ color:"rgba(255,255,255,0.5)", fontSize:"12px", lineHeight:1.5 }}>{t("Reviewed within 24h. Cancellation =","Revisado en 24h. Cancelación =")} <strong style={{ color:"white" }}>20% {t("penalty","penalización")}</strong>. {t("No penalty if container not filled.","Sin penalización si el contenedor no se llena.")}</div>
