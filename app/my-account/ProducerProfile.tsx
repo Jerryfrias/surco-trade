@@ -298,7 +298,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
             {producer.consolidaciones?.length > 0 ? (
               <div style={{ display:"flex", flexDirection:"column", gap:"8px", marginBottom:"14px" }}>
                 {producer.consolidaciones.map((c: any, i: number) => (
-                  <div key={i} onClick={() => onJoin?.(c)} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(255,255,255,0.03)", borderRadius:"8px", border:`0.5px solid ${c.status==="open"?"rgba(74,222,128,0.1)":"rgba(251,146,60,0.1)"}`, cursor:"pointer" }}>
+                  <div key={i} onClick={() => c.status==="open" && onJoin?.(c)} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(255,255,255,0.03)", borderRadius:"8px", border:`0.5px solid ${c.status==="open"?"rgba(74,222,128,0.1)":"rgba(251,146,60,0.1)"}`, cursor: c.status==="open" ? "pointer" : "default", opacity: c.status==="open" ? 1 : 0.5 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
                       <div style={{ width:"5px", height:"5px", borderRadius:"50%", background: c.status==="open" ? "#4ade80" : "#fb923c" }}/>
                       <span style={{ color:"white", fontSize:"12px" }}>{c.puerto}</span>
