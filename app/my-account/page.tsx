@@ -564,7 +564,11 @@ const profileRefs = {
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"12px" }}>
                   {filteredProducts.map(p => (
-                    <div key={p.name} style={card}>
+                    <div key={p.name} style={{...card, padding:0, overflow:"hidden"}}>
+                      <div style={{ width:"100%", height:"140px", background:"rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", borderBottom:"0.5px solid rgba(255,255,255,0.06)" }}>
+                        {p.image && <img src={p.image} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain", padding:"12px" }} />}
+                      </div>
+                      <div style={{ padding:"14px 14px 14px 14px" }}>
                       <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"10px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"8px" }}>{p.cat}</div>
                       <div style={{ color:"white", fontSize:"13px", fontWeight:500, marginBottom:"4px" }}>{p.name}</div>
                       <div style={{ color:"#4ade80", fontSize:"13px", marginBottom:"4px" }}>{p.price}</div>
@@ -572,6 +576,7 @@ const profileRefs = {
                       <button onClick={() => { if (p.name === "Vannamei Shrimp") { setSelectedProductPage(p.name); setSelCerts([]); setSelProcesses([]); setSelCountries([]); setSelHarvest([]); updateURL("products", p.name); } else { setSelectedProductPage(p.name); updateURL("products", p.name); } }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"11px", fontWeight:600, padding:"7px", borderRadius:"6px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>
                         {t("View producers →","Ver productores →")}
                       </button>
+                      </div>
                     </div>
                   ))}
                 </div>
