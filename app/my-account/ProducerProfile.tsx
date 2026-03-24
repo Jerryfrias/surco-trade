@@ -91,14 +91,21 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
       const challenge = crypto.getRandomValues(new Uint8Array(32));
       await navigator.credentials.create({ publicKey: {
         challenge,
-        rp: { name: "Surco.trade", id: window.location.hostname },
+        rp: { name: "Surco.trade" },
         user: { id: crypto.getRandomValues(new Uint8Array(16)), name: reserveForm.email || "user@surco.trade", displayName: reserveForm.nombre || "User" },
         pubKeyCredParams: [{ type:"public-key", alg:-7 }, { type:"public-key", alg:-257 }],
-        authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required" },
+        authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required", residentKey:"discouraged" },
         timeout: 60000,
+        attestation: "none",
       }});
       setReserveBio("done");
-    } catch { setReserveBio("error"); }
+    } catch(e: any) {
+      if (e?.name === "NotAllowedError") {
+        setReserveBio("idle");
+      } else {
+        setReserveBio("error");
+      }
+    }
   };
 
   const toggle = (arr: string[], val: string, set: (v: string[]) => void) => {
@@ -585,7 +592,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
 
       {/* FULL CONTAINER RESERVATION MODAL */}
       {showReserve && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
           <div style={{ background:"#071a0e", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"16px", width:"100%", maxWidth:"500px", maxHeight:"90vh", overflowY:"auto" }}>
             <div style={{ padding:"24px 28px 0", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div>
