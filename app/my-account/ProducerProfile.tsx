@@ -244,7 +244,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"16px" }}>
           {[
             { id:"container", label:t("Buy full container","Comprar contenedor completo"), sub:t("22 tons exclusively for you.","22 toneladas exclusivamente para ti."), icon:"M2 3h20v14a2 2 0 01-2 2H4a2 2 0 01-2-2V3zM8 21h8M12 17v4" },
-            { id:"consol", label:t("Start / join consolidation","Iniciar / unirse a consolidación"), sub:t("Share a container. Pay only for your slots.","Comparte un contenedor. Paga solo por tus slots."), icon:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 3a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" },
+            { id:"consol", label:t("Start consolidation","Iniciar consolidación"), sub:t("Share a container. Pay only for your slots.","Comparte un contenedor. Paga solo por tus slots."), icon:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 3a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" },
           ].map(opt => (
             <div key={opt.id} onClick={() => setAction(opt.id as any)} style={{ border: action === opt.id ? "2px solid #4ade80" : "1.5px solid rgba(255,255,255,0.1)", borderRadius:"10px", padding:"14px", cursor:"pointer", background: action === opt.id ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.02)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"6px" }}>
