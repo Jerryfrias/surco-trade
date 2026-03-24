@@ -21,9 +21,9 @@ export const allProducts = [
   { name:"Vannamei Shrimp", cat:"Seafood", price:"$4.20/kg", season:"Year-round", image:"/products/vannamei-shrimp.jpg" },
   { name:"Tilapia Fillet", cat:"Seafood", price:"$2.40/kg", season:"Year-round", image:"/products/tilapia-fillet.jpg" },
   { name:"Dragon Fruit", cat:"Fruits", price:"$1.80/kg", season:"Apr-Oct", image:"/products/dragon-fruit.jpg" },
-  { name:"Organic Banana", cat:"Fruits", price:"$0.62/kg", season:"Year-round", image:"/products/organic-banana.jpg" },
-  { name:"Mango Tommy", cat:"Fruits", price:"$1.20/kg", season:"Jan-Apr", image:"/products/mango-tommy.jpg" },
-  { name:"Cacao", cat:"Agro", price:"$3.10/kg", season:"Year-round", image:"/products/cacao.jpg" },
+  { name:"Organic Banana", cat:"Fruits", price:"$0.62/kg", season:"Year-round" },
+  { name:"Mango Tommy", cat:"Fruits", price:"$1.20/kg", season:"Jan-Apr" },
+  { name:"Cacao", cat:"Agro", price:"$3.10/kg", season:"Year-round" },
 ];
 
 export const prices = [
