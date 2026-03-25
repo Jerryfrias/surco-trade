@@ -329,7 +329,7 @@ const profileRefs = {
 
         <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", letterSpacing:"1px", textTransform:"uppercase", padding:"12px 20px 4px" }}>{t("Main","Principal")}</div>
         <SideItem id="overview" label={t("Overview","Resumen")} icon={ic("M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z")} />
-        <SideItem id="browse" label={t("Browse","Explorar")} icon={ic("M11 3a8 8 0 100 16 8 8 0 000-16zM21 21l-4.35-4.35")} />
+        <SideItem id="browse" label={t("Consolidations","Consolidaciones")} icon={ic("M11 3a8 8 0 100 16 8 8 0 000-16zM21 21l-4.35-4.35")} />
         <SideItem id="orders" label={t("My orders","Mis pedidos")} icon={ic("M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 3h6v4H9z")} />
         <SideItem id="products" label={t("Products","Productos")} icon={ic("M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z")} />
         <SideItem id="prices" label={t("Prices","Precios")} icon={ic("M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6")} />
