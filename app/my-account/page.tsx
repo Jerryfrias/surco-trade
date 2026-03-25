@@ -123,6 +123,18 @@ const profileRefs = {
   const bjSigDrawing = useRef(false);
   const [bjContract, setBjContract] = useState<ContractData | null>(null);
   const [showBjContract, setShowBjContract] = useState(false);
+
+  // Resize canvas to its real CSS size so offsetX/offsetY are 1:1
+  useEffect(() => {
+    if (bjStep === 3) {
+      const resize = () => {
+        const c = bjSigRef.current;
+        if (c) { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+      };
+      const id = setTimeout(resize, 50); // wait for layout
+      return () => clearTimeout(id);
+    }
+  }, [bjStep]);
   const [signedContracts, setSignedContracts] = useState<ContractData[]>([]);
   const [viewingContract, setViewingContract] = useState<ContractData | null>(null);
 
@@ -977,13 +989,13 @@ const profileRefs = {
                       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}><span style={{ color:"rgba(255,255,255,0.35)", fontSize:"11px" }}>{t("Commitment","Compromiso")}</span><span style={{ color:"white", fontSize:"11px" }}>{bjTons} tons · {bj.port} · ${(bjTons*1000*price).toLocaleString()}</span></div>
                     </div>
                     <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px" }}>{t("Sign here","Firma aquí")}</div>
-                    <canvas ref={bjSigRef} width={500} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
-                      onMouseDown={e => { bjSigDrawing.current=true; const c=bjSigRef.current!; const r=c.getBoundingClientRect(); const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo((e.clientX-r.left)*(c.width/r.width),(e.clientY-r.top)*(c.height/r.height)); }}
-                      onMouseMove={e => { if(!bjSigDrawing.current)return; const c=bjSigRef.current!; const r=c.getBoundingClientRect(); const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo((e.clientX-r.left)*(c.width/r.width),(e.clientY-r.top)*(c.height/r.height)); ctx.stroke(); }}
+                    <canvas ref={bjSigRef} style={{ width:"100%", height:"130px", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
+                      onMouseDown={e => { bjSigDrawing.current=true; const ctx=bjSigRef.current!.getContext("2d")!; ctx.beginPath(); ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY); }}
+                      onMouseMove={e => { if(!bjSigDrawing.current)return; const ctx=bjSigRef.current!.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY); ctx.stroke(); }}
                       onMouseUp={() => bjSigDrawing.current=false}
                       onMouseLeave={() => bjSigDrawing.current=false}
-                      onTouchStart={e => { e.preventDefault(); bjSigDrawing.current=true; const c=bjSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; c.getContext("2d")!.beginPath(); c.getContext("2d")!.moveTo((t2.clientX-r.left)*(c.width/r.width),(t2.clientY-r.top)*(c.height/r.height)); }}
-                      onTouchMove={e => { e.preventDefault(); if(!bjSigDrawing.current)return; const c=bjSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo((t2.clientX-r.left)*(c.width/r.width),(t2.clientY-r.top)*(c.height/r.height)); ctx.stroke(); }}
+                      onTouchStart={e => { e.preventDefault(); bjSigDrawing.current=true; const c=bjSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo(t2.clientX-r.left, t2.clientY-r.top); }}
+                      onTouchMove={e => { e.preventDefault(); if(!bjSigDrawing.current)return; const c=bjSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo(t2.clientX-r.left, t2.clientY-r.top); ctx.stroke(); }}
                       onTouchEnd={() => bjSigDrawing.current=false}
                     />
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:"8px", marginBottom:"6px" }}>

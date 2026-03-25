@@ -82,6 +82,18 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   const [showReserveContract, setShowReserveContract] = useState(false);
   const reserveSigRef = useRef<HTMLCanvasElement>(null);
   const reserveSigDrawing = useRef(false);
+
+  // Resize canvas to real CSS size so offsetX/offsetY are 1:1
+  useEffect(() => {
+    if (reserveStep === 2) {
+      const resize = () => {
+        const c = reserveSigRef.current;
+        if (c) { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+      };
+      const id = setTimeout(resize, 50);
+      return () => clearTimeout(id);
+    }
+  }, [reserveStep]);
   const DIAL_CODES = [
     { code:"+51", flag:"🇵🇪", name:"Peru" }, { code:"+593", flag:"🇪🇨", name:"Ecuador" },
     { code:"+57", flag:"🇨🇴", name:"Colombia" }, { code:"+52", flag:"🇲🇽", name:"Mexico" },
@@ -667,13 +679,13 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     ))}
                   </div>
                   <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px" }}>{t("Sign here","Firma aquí")}</div>
-                  <canvas ref={reserveSigRef} width={500} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
-                    onMouseDown={e => { reserveSigDrawing.current=true; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo((e.clientX-r.left)*(c.width/r.width),(e.clientY-r.top)*(c.height/r.height)); }}
-                    onMouseMove={e => { if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo((e.clientX-r.left)*(c.width/r.width),(e.clientY-r.top)*(c.height/r.height)); ctx.stroke(); }}
+                  <canvas ref={reserveSigRef} style={{ width:"100%", height:"130px", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
+                    onMouseDown={e => { reserveSigDrawing.current=true; const ctx=reserveSigRef.current!.getContext("2d")!; ctx.beginPath(); ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY); }}
+                    onMouseMove={e => { if(!reserveSigDrawing.current)return; const ctx=reserveSigRef.current!.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY); ctx.stroke(); }}
                     onMouseUp={() => reserveSigDrawing.current=false}
                     onMouseLeave={() => reserveSigDrawing.current=false}
-                    onTouchStart={e => { e.preventDefault(); reserveSigDrawing.current=true; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo((t2.clientX-r.left)*(c.width/r.width),(t2.clientY-r.top)*(c.height/r.height)); }}
-                    onTouchMove={e => { e.preventDefault(); if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo((t2.clientX-r.left)*(c.width/r.width),(t2.clientY-r.top)*(c.height/r.height)); ctx.stroke(); }}
+                    onTouchStart={e => { e.preventDefault(); reserveSigDrawing.current=true; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo(t2.clientX-r.left, t2.clientY-r.top); }}
+                    onTouchMove={e => { e.preventDefault(); if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo(t2.clientX-r.left, t2.clientY-r.top); ctx.stroke(); }}
                     onTouchEnd={() => reserveSigDrawing.current=false}
                   />
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:"8px", marginBottom:"14px" }}>
