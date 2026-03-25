@@ -16,7 +16,7 @@ const Opt = ({ label, sub, available, selected, onToggle }: any) => (
   </div>
 );
 
-export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, onSaveConfig, onDirty, onConfigChange, onJoin, lang }: {
+export default function ProducerProfile({ producer, onBack, isFavorite, onToggleFavorite, onSaveConfig, onDirty, onConfigChange, onJoin, onContractSigned, lang }: {
   producer: any,
   onBack: () => void,
   isFavorite: boolean,
@@ -25,6 +25,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   onDirty: () => void,
   onConfigChange?: (config: any) => void,
   onJoin?: (c: any) => void,
+  onContractSigned?: (c: ContractData) => void,
   lang: string
 }) {
   const t = (en: string, es: string) => lang === "EN" ? en : es;
@@ -666,15 +667,18 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     ))}
                   </div>
                   <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px" }}>{t("Sign here","Firma aquí")}</div>
-                  <canvas ref={reserveSigRef} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
-                    onMouseDown={e => { reserveSigDrawing.current=true; const c=reserveSigRef.current!; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo(e.nativeEvent.offsetX,e.nativeEvent.offsetY); }}
-                    onMouseMove={e => { if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2; ctx.lineCap="round"; ctx.lineTo(e.nativeEvent.offsetX,e.nativeEvent.offsetY); ctx.stroke(); }}
+                  <canvas ref={reserveSigRef} width={500} height={130} style={{ width:"100%", borderRadius:"8px", background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"crosshair", touchAction:"none", display:"block" }}
+                    onMouseDown={e => { reserveSigDrawing.current=true; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo((e.clientX-r.left)*(c.width/r.width),(e.clientY-r.top)*(c.height/r.height)); }}
+                    onMouseMove={e => { if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo((e.clientX-r.left)*(c.width/r.width),(e.clientY-r.top)*(c.height/r.height)); ctx.stroke(); }}
                     onMouseUp={() => reserveSigDrawing.current=false}
                     onMouseLeave={() => reserveSigDrawing.current=false}
+                    onTouchStart={e => { e.preventDefault(); reserveSigDrawing.current=true; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.beginPath(); ctx.moveTo((t2.clientX-r.left)*(c.width/r.width),(t2.clientY-r.top)*(c.height/r.height)); }}
+                    onTouchMove={e => { e.preventDefault(); if(!reserveSigDrawing.current)return; const c=reserveSigRef.current!; const r=c.getBoundingClientRect(); const t2=e.touches[0]; const ctx=c.getContext("2d")!; ctx.strokeStyle="#4ade80"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineTo((t2.clientX-r.left)*(c.width/r.width),(t2.clientY-r.top)*(c.height/r.height)); ctx.stroke(); }}
+                    onTouchEnd={() => reserveSigDrawing.current=false}
                   />
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:"6px", marginBottom:"14px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:"8px", marginBottom:"14px" }}>
                     <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px" }}>📍 IP, {t("date & time UTC recorded","fecha y hora UTC registradas.")}</div>
-                    <button onClick={() => { const c=reserveSigRef.current!; c.getContext("2d")!.clearRect(0,0,c.width,c.height); }} style={{ background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:"11px", border:"none", cursor:"pointer" }}>{t("Clear","Limpiar")}</button>
+                    <button onClick={() => { const c=reserveSigRef.current!; c.getContext("2d")!.clearRect(0,0,c.width,c.height); reserveSigDrawing.current=false; }} style={{ background:"rgba(248,113,113,0.08)", color:"rgba(248,113,113,0.7)", fontSize:"11px", border:"0.5px solid rgba(248,113,113,0.2)", borderRadius:"6px", cursor:"pointer", padding:"4px 10px" }}>✕ {t("Clear signature","Borrar firma")}</button>
                   </div>
                   <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", marginBottom:"18px" }}>{t("Valid under","Válido bajo")} <a href="/terms" target="_blank" style={{ color:"rgba(74,222,128,0.6)" }}>eIDAS (Europe) / ESIGN Act (USA)</a>.</div>
                   <div style={{ display:"flex", gap:"10px" }}>
@@ -684,7 +688,9 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                       const sigUrl = reserveSigRef.current?.toDataURL("image/png");
                       const refId = `CONT-2026-${String(Date.now()).slice(-6)}`;
                       await supabase.from("reservas_contenedor").insert({ producer_id: producer.id, comprador_nombre: reserveForm.nombre, comprador_dni: reserveForm.dni, comprador_empresa: reserveForm.empresa, comprador_email: reserveForm.email, comprador_telefono: reserveForm.telefono, talla: selectedTalla?.label, qty, total_estimado: total, biometrico: false, fecha: new Date().toISOString() });
-                      setReserveContract({ type:"container", referenceId: refId, date: new Date().toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }), buyer: { nombre: reserveForm.nombre, dni: reserveForm.dni, empresa: reserveForm.empresa, email: reserveForm.email, telefono: `${reserveDialCode} ${reserveForm.telefono}` }, product: { name: producer.nombre || "Vannamei Shrimp", port: "Rotterdam", price: `$${(total/qty/1000).toFixed(2)}/kg`, qty, total, talla: selectedTalla?.label }, signatureDataUrl: sigUrl });
+                      const contract: ContractData = { type:"container", referenceId: refId, date: new Date().toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }), buyer: { nombre: reserveForm.nombre, dni: reserveForm.dni, empresa: reserveForm.empresa, email: reserveForm.email, telefono: `${reserveDialCode} ${reserveForm.telefono}` }, product: { name: producer.nombre || "Vannamei Shrimp", port: "Rotterdam", price: `$${(total/qty/1000).toFixed(2)}/kg`, qty, total, talla: selectedTalla?.label }, signatureDataUrl: sigUrl };
+                      setReserveContract(contract);
+                      onContractSigned?.(contract);
                       setReserveStep(3);
                     }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Sign & submit →","Firmar y enviar →")}</button>
                   </div>
