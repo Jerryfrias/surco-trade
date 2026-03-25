@@ -3,6 +3,7 @@ import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { ALL_PRES, ALL_PROC, ALL_PACK } from "./data";
+import ContractViewer, { ContractData } from "./ContractViewer";
 
 const certTag = (label: string) => (
   <span key={label} style={{ display:"inline-flex", background:"rgba(74,222,128,0.1)", color:"#4ade80", border:"0.5px solid rgba(74,222,128,0.25)", fontSize:"10px", padding:"4px 9px", borderRadius:"6px", margin:"2px" }}>{label}</span>
@@ -76,6 +77,8 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
   const [reserveErrors, setReserveErrors] = useState<Record<string,string>>({});
   const [reserveDialCode, setReserveDialCode] = useState("+51");
   const [reserveSigned, setReserveSigned] = useState(false);
+  const [reserveContract, setReserveContract] = useState<ContractData | null>(null);
+  const [showReserveContract, setShowReserveContract] = useState(false);
   const reserveSigRef = useRef<HTMLCanvasElement>(null);
   const reserveSigDrawing = useRef(false);
   const DIAL_CODES = [
@@ -307,7 +310,7 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
               </div>
               <div style={{ color:"rgba(255,255,255,0.2)", fontSize:"10px", marginTop:"6px" }}>* {t("Freight is an estimate. Final price confirmed by Surco.trade team.","El flete es un estimado. Precio final confirmado por el equipo de Surco.trade.")}</div>
             </div>
-            <button onClick={() => { setShowReserve(true); setReserveStep(1); setReserveBio("idle"); setReserveSigned(false); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"16px" }}>{t("Reserve container →","Reservar contenedor →")}</button>
+            <button onClick={() => { setShowReserve(true); setReserveStep(1); setReserveSigned(false); }} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"13px", borderRadius:"50px", border:"none", cursor:"pointer", marginTop:"16px" }}>{t("Reserve container →","Reservar contenedor →")}</button>
           </div>
         )}
 
@@ -678,7 +681,10 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                     <button onClick={() => setReserveStep(1)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
                     <button onClick={async () => {
                       setReserveSigned(true);
+                      const sigUrl = reserveSigRef.current?.toDataURL("image/png");
+                      const refId = `CONT-2026-${String(Date.now()).slice(-6)}`;
                       await supabase.from("reservas_contenedor").insert({ producer_id: producer.id, comprador_nombre: reserveForm.nombre, comprador_dni: reserveForm.dni, comprador_empresa: reserveForm.empresa, comprador_email: reserveForm.email, comprador_telefono: reserveForm.telefono, talla: selectedTalla?.label, qty, total_estimado: total, biometrico: false, fecha: new Date().toISOString() });
+                      setReserveContract({ type:"container", referenceId: refId, date: new Date().toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }), buyer: { nombre: reserveForm.nombre, dni: reserveForm.dni, empresa: reserveForm.empresa, email: reserveForm.email, telefono: `${reserveDialCode} ${reserveForm.telefono}` }, product: { name: producer.nombre || "Vannamei Shrimp", port: "Rotterdam", price: `$${(total/qty/1000).toFixed(2)}/kg`, qty, total, talla: selectedTalla?.label }, signatureDataUrl: sigUrl });
                       setReserveStep(3);
                     }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Sign & submit →","Firmar y enviar →")}</button>
                   </div>
@@ -693,16 +699,22 @@ export default function ProducerProfile({ producer, onBack, isFavorite, onToggle
                   <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px", lineHeight:1.7, marginBottom:"20px" }}>{t("Surco.trade will confirm within 24h via WhatsApp and email.","Surco.trade confirmará en 24h por WhatsApp y email.")}</div>
                   <div style={{ background:"rgba(74,222,128,0.08)", border:"0.5px solid rgba(74,222,128,0.2)", borderRadius:"10px", padding:"14px", marginBottom:"20px", textAlign:"left" }}>
                     <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"4px" }}>{t("Reference number","Número de referencia")}</div>
-                    <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>CONT-2026-{String(Date.now()).slice(-6)}</div>
+                    <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>{reserveContract?.referenceId}</div>
                     <div style={{ color:"rgba(255,255,255,0.3)", fontSize:"11px", marginTop:"4px" }}>{reserveForm.nombre} · {reserveForm.empresa}</div>
                   </div>
-                  <button onClick={() => { setShowReserve(false); setReserveStep(1); setReserveBio("idle"); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to producer","Volver al productor")}</button>
+                  <button onClick={() => setShowReserveContract(true)} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:700, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer", marginBottom:"10px" }}>📄 {t("View Commitment Contract","Ver Contrato de Compromiso")}</button>
+                  <button onClick={() => { setShowReserve(false); setReserveStep(1); setReserveErrors({}); }} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to producer","Volver al productor")}</button>
                 </div>
               )}
 
             </div>
           </div>
         </div>
+      )}
+
+      {/* CONTRACT VIEWER — Full Container */}
+      {showReserveContract && reserveContract && (
+        <ContractViewer data={reserveContract} lang={lang as "EN"|"ES"} onClose={() => setShowReserveContract(false)} />
       )}
 
       {/* NOTES */}

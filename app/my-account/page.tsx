@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import ProducerProfile from "./ProducerProfile";
+import ContractViewer, { ContractData } from "./ContractViewer";
 import {
   CERTS, PROCESSES, COUNTRIES, HARVESTS,
   MOCK_PRODUCERS, allProducts, prices,
@@ -120,6 +121,8 @@ const profileRefs = {
   const [bjTaxId, setBjTaxId] = useState("");
   const bjSigRef = useRef<HTMLCanvasElement>(null);
   const bjSigDrawing = useRef(false);
+  const [bjContract, setBjContract] = useState<ContractData | null>(null);
+  const [showBjContract, setShowBjContract] = useState(false);
 
   const t = (en: string, es: string) => lang === "EN" ? en : es;
 
@@ -969,6 +972,7 @@ const profileRefs = {
                     <div style={{ display:"flex", gap:"10px" }}>
                       <button onClick={() => setBjStep(2)} style={{ flex:1, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", fontSize:"13px", padding:"11px", borderRadius:"50px", border:"0.5px solid rgba(255,255,255,0.12)", cursor:"pointer" }}>← {t("Back","Atrás")}</button>
                       <button onClick={async () => {
+                        const sigUrl = bjSigRef.current?.toDataURL("image/png");
                         await supabase.from("consolidacion_compradores").insert({
                           consolidacion_id: bj.id,
                           comprador_email: (await supabase.auth.getUser()).data.user?.email,
@@ -980,6 +984,7 @@ const profileRefs = {
                           estado_firma: "signed",
                           fecha_firma: new Date().toISOString(),
                         });
+                        setBjContract({ type:"consolidation", referenceId: bj.id, date: new Date().toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }), buyer: { nombre: bjName, dni: bjTaxId, empresa: bjTaxId, email: "", telefono: "" }, product: { name: bj.product || "Vannamei Shrimp", port: bj.port || "Rotterdam", price: `$${price}/kg`, departure: bj.departure, qty: bjTons, total: bjTons*1000*price }, signatureDataUrl: sigUrl });
                         setBjStep(4);
                       }} style={{ flex:2, background:"#4ade80", color:"#071a0e", fontSize:"14px", fontWeight:600, padding:"11px", borderRadius:"50px", border:"none", cursor:"pointer" }}>{t("Submit & sign →","Enviar y firmar →")}</button>
                     </div>
@@ -996,7 +1001,8 @@ const profileRefs = {
                       <div style={{ color:"rgba(255,255,255,0.4)", fontSize:"11px", marginBottom:"4px" }}>{t("Reference number","Número de referencia")}</div>
                       <div style={{ color:"#4ade80", fontSize:"20px", fontWeight:600 }}>{bj.id}</div>
                     </div>
-                    <button onClick={() => setBrowseJoin(null)} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to browse","Volver a explorar")}</button>
+                    <button onClick={() => setShowBjContract(true)} style={{ width:"100%", background:"#4ade80", color:"#071a0e", fontSize:"13px", fontWeight:700, padding:"12px", borderRadius:"50px", border:"none", cursor:"pointer", marginBottom:"10px" }}>📄 {t("View Commitment Contract","Ver Contrato de Compromiso")}</button>
+                    <button onClick={() => setBrowseJoin(null)} style={{ width:"100%", background:"rgba(74,222,128,0.12)", color:"#4ade80", fontSize:"13px", fontWeight:600, padding:"12px", borderRadius:"50px", border:"0.5px solid rgba(74,222,128,0.3)", cursor:"pointer" }}>{t("Back to consolidations","Volver a consolidaciones")}</button>
                   </div>
                 )}
 
@@ -1005,6 +1011,11 @@ const profileRefs = {
           </div>
         );
       })()}
+
+      {/* CONTRACT VIEWER — Consolidation */}
+      {showBjContract && bjContract && (
+        <ContractViewer data={bjContract} lang={lang} onClose={() => setShowBjContract(false)} />
+      )}
     </div>
   );
 }
